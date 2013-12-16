@@ -1,0 +1,10 @@
+This directory contains BEAST 1.8 XML files, and the log+trees files prodeced by these models.
+This dataa is used by the tests in test/beast/evolution/likelihood to ensure the BEAST 2 likelihoods are the same as in BEAST 1.
+
+The variants are
+- CTCM without ascertainment correction
+- CTCM with ascertainment correction
+- Covarion without ascertainment correction
+- Covarion with ascertainment correction
+- Stochastic dollo with anytips observation process
+
