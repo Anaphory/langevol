@@ -60,6 +60,12 @@ public class AbstractObservationProcess extends CalculationNode {
     public Input<Boolean> integrateGainRateInputInput = new Input<Boolean>("integrateGainRate", "description here", false);
 
 
+	@Override
+	public void initAndValidate() throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
 //    dr.evomodel.MSSD.AbstractObservationProcess abstractobservationprocess;
 //
 //    double getNodeSurvivalProbability(int index, double averageRate) {
