@@ -50,4 +50,10 @@ public class MutationDeathType extends DataType.Base {
     	}
     }
 
+
+	@Override
+	public String getTypeDescription() {
+		return "MutationDeathType";
+	}
+
 }
