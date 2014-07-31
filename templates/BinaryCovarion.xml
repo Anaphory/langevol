@@ -147,13 +147,12 @@
 			<parameter name='alpha' id="bcov_alpha.s:$(n)" value="0.5" lower="0.0001" upper="1.0"/>
 			<parameter name='switchingParameter' id="bcov_s.s:$(n)" value="0.5" lower="0.0001" upper="Infinity"/>
 
-			<alignment spec='beast.evolution.alignment.FilteredAlignment' filter='-' id='orgdata.$(n)' strip='true'>
-				<userDataType spec='beast.evolution.datatype.TwoStateCovarion'/>
-                <data idref="data"/>
-			</alignment>
 
 			<distribution spec='TreeLikelihood' id="treeLikelihood.$(n)">
-                <data idref="orgdata.$(n)"/>
+			    <data spec='beast.evolution.alignment.FilteredAlignment' filter='-' id='orgdata.$(n)' strip='true'>
+				    <userDataType spec='beast.evolution.datatype.TwoStateCovarion'/>
+                    <data idref="data"/>
+			    </data>
 				<tree idref="Tree.t:$(n)"/>
 				<siteModel spec='SiteModel' id="SiteModel.s:$(n)" gammaCategoryCount="1">
 		            <proportionInvariant spec='parameter.RealParameter' id='proportionInvariant.s:$(n)' value='0.0' lower='0' upper='1' estimate='false'/>
@@ -164,6 +163,7 @@
 						    <switchRate idref='bcov_s.s:$(n)'/>
 						    <parameter name='vfrequencies' id='frequencies.s:$(n)' value='0.5 0.5' lower='0' upper='1'/>
 						    <parameter name='hfrequencies' id='hiddenfrequencies.s:$(n)' value='0.5 0.5' lower='0' upper='1'/>
+						    <frequencies id='dummyfrequencies.s:$(n)' spec='Frequencies' estimate='faslse' data='@$(n)'/>
                         </substModel>
 
 <!--
@@ -195,7 +195,7 @@
 
             <!--plugin spec='beast.evolution.tree.RandomTree' id='RandomTree.t:$(n)' estimate='false' trait='@datetrait.$(n)' initial='@Tree.t:$(n)'-->
             <plugin spec='beast.evolution.tree.RandomTree' id='RandomTree.t:$(n)' estimate='false' initial='@Tree.t:$(n)'>
-                <taxa spec='Alignment' idref='data'/>
+                <taxa spec='Alignment' idref='$(n)'/>
                 <populationModel id='ConstantPopulation0.t:$(n)' spec='ConstantPopulation'>
             		<popSize id='randomPopSize.t:$(n)' spec='parameter.RealParameter' value='1'/>
 	            </populationModel>
