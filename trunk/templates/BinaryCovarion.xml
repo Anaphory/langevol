@@ -148,7 +148,7 @@
 			<parameter name='switchingParameter' id="bcov_s.s:$(n)" value="0.5" lower="0.0001" upper="Infinity"/>
 
 
-			<distribution spec='TreeLikelihood' id="treeLikelihood.$(n)">
+			<distribution spec='TreeLikelihood' id="treeLikelihood.$(n)" useAmbiguities="true">
 			    <data spec='beast.evolution.alignment.FilteredAlignment' filter='-' id='orgdata.$(n)' strip='true'>
 				    <userDataType spec='beast.evolution.datatype.TwoStateCovarion'/>
                     <data idref="data"/>
@@ -302,6 +302,7 @@
             <connect srcID='YuleModel.t:$(n)'                 targetID='tracelog' inputName='log' if='inposterior(YuleModel.t:$(n)) and inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'/>
             <connect srcID='birthRate.t:$(n)'                 targetID='tracelog' inputName='log' if='inposterior(YuleModel.t:$(n)) and birthRate.t:$(n)/estimate=true'/>
             <connect srcID='frequencies.s:$(n)'               targetID='tracelog' inputName='log' if='inlikelihood(frequencies.s:$(n)) and frequencies.s:$(n)/estimate=true'/>
+            <connect srcID='hiddenfrequencies.s:$(n)'         targetID='tracelog' inputName='log' if='inlikelihood(hiddenfrequencies.s:$(n)) and hiddenfrequencies.s:$(n)/estimate=true'/>
 
             <connect srcID='GammaShapePrior.s:$(n)'           targetID='prior' inputName='distribution' if='inlikelihood(gammaShape.s:$(n)) and gammaShape.s:$(n)/estimate=true'/>
             <connect srcID='bcov_alpha_prior.s:$(n)'          targetID='prior' inputName='distribution' if='inlikelihood(bcov_alpha.s:$(n)) and bcov_alpha.s:$(n)/estimate=true'/>

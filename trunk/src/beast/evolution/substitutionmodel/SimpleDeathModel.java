@@ -52,10 +52,10 @@ public class SimpleDeathModel extends SubstitutionModel.Base {
     
 	protected double[][] getRateMatrix() {
 		double [][] rateMatrix = new double[2][2];
-		rateMatrix[0][0] = 1 - delParameter.get().getValue();
+		rateMatrix[0][0] = - delParameter.get().getValue();
 		rateMatrix[0][1] = delParameter.get().getValue();
 		rateMatrix[1][0] = 0;
-		rateMatrix[1][1] = 1;
+		rateMatrix[1][1] = 0;
 		return rateMatrix;
 	}
     
@@ -80,6 +80,37 @@ public class SimpleDeathModel extends SubstitutionModel.Base {
         }
 
         matrix[nrOfStates * nrOfStates - 1] = 1.0;
+        
+        
+//        eigenDecomposition = getEigenDecomposition(node);
+//        double temp;
+//        double[] iexp = new double[nrOfStates * nrOfStates];
+//        // Eigen vectors
+//        double[] Evec = eigenDecomposition.getEigenVectors();
+//        // inverse Eigen vectors
+//        double[] Ievc = eigenDecomposition.getInverseEigenVectors();
+//        // Eigen values
+//        double[] Eval = eigenDecomposition.getEigenValues();
+//        for (i = 0; i < nrOfStates; i++) {
+//            temp = Math.exp(distance * Eval[i]);
+//            for (j = 0; j < nrOfStates; j++) {
+//                iexp[i * nrOfStates + j] = Ievc[i * nrOfStates + j] * temp;
+//            }
+//        }
+//
+//        int u = 0;
+//        for (i = 0; i < nrOfStates; i++) {
+//            for (j = 0; j < nrOfStates; j++) {
+//                temp = 0.0;
+//                for (int k = 0; k < nrOfStates; k++) {
+//                    temp += Evec[i * nrOfStates + k] * iexp[k * nrOfStates + j];
+//                }
+//
+//                matrix[u] = Math.abs(temp);
+//                u++;
+//            }
+//        }
+
     } // getTransitionProbabilities
 
     /**
