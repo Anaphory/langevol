@@ -1,8 +1,6 @@
 package beast.evolution.substitutionmodel;
 
 
-import java.lang.reflect.Constructor;
-
 import beast.core.Description;
 import beast.core.Input;
 import beast.core.Input.Validate;
@@ -36,7 +34,7 @@ public class SimpleDeathModel extends SubstitutionModel.Base {
         nrOfStates = freqs.length;
         trMatrix = new double[(nrOfStates - 1) * (nrOfStates - 1)];
         
-        eigenSystem = new DefaultEigenSystem(2);
+        eigenSystem = new DefaultEigenSystem(nrOfStates);
     }
     
     @Override
@@ -113,6 +111,12 @@ public class SimpleDeathModel extends SubstitutionModel.Base {
 
     } // getTransitionProbabilities
 
+    @Override
+    protected void restore() {
+    	updateMatrix = true;
+    	super.restore();
+    }
+    
     /**
      * CalculationNode implementation *
      */
