@@ -42,7 +42,7 @@ public class SDolloLikelihoodTest extends LanguageTreeLikelihoodTest {
 		Alignment data = getSDolloAlignment();
 		String logFile = "ringe-dollo-strict";
 
-		LogAnalyser analyser = new LogAnalyser(new String[] { "examples/testdata/" + logFile + ".log" }, 2000, 0);
+		LogAnalyser analyser = new LogAnalyser(new String[] { "examples/testdata/" + logFile + ".log" }, /*2000,*/ 0);
 		Double[] likelihoods = analyser.getTrace("likelihood");
 		Double[] cognate_loss = analyser.getTrace("cognate.loss");
 

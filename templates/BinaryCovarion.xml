@@ -161,8 +161,8 @@
                         <substModel spec='BinaryCovarion' id="covarion">
 						    <alpha idref='bcov_alpha.s:$(n)'/>
 						    <switchRate idref='bcov_s.s:$(n)'/>
-						    <parameter name='vfrequencies' id='frequencies.s:$(n)' value='0.5 0.5' lower='0' upper='1'/>
-						    <parameter name='hfrequencies' id='hiddenfrequencies.s:$(n)' value='0.5 0.5' lower='0' upper='1'/>
+						    <parameter name='vfrequencies' id='frequencies.s:$(n)' value='0.5 0.5' lower='0' upper='1' estimate='true'/>
+						    <parameter name='hfrequencies' id='hiddenfrequencies.s:$(n)' value='0.5 0.5' lower='0' upper='1' estimate='true'/>
 						    <frequencies id='dummyfrequencies.s:$(n)' spec='Frequencies' estimate='faslse' data='@$(n)'/>
                         </substModel>
 
@@ -248,6 +248,7 @@
 			</upDownOperator>
 
             <operator id='frequenciesDelta.s:$(n)' spec='DeltaExchangeOperator' delta="0.01" weight="0.1" parameter="@frequencies.s:$(n)"/>  
+			<operator id="hFrequenciesDelta.t:$(n)" spec="DeltaExchangeOperator" delta="0.01" weight="0.1" parameter="@hiddenfrequencies.s:$(n)"/>
 
 ]]>
             <connect srcID='treeLikelihood.$(n)'            targetID='likelihood' inputName='distribution' if="isInitializing"/>
@@ -279,7 +280,9 @@
             <connect srcID='StrictClockRateScaler.c:$(n)'     targetID='mcmc' inputName='operator' if='inlikelihood(clockRate.c:$(n)) and clockRate.c:$(n)/estimate=true'>Scale clock rate of partition c:$(n)</connect>
             <connect srcID='YuleBirthRateScaler.t:$(n)'       targetID='mcmc' inputName='operator' if='inposterior(birthRate.t:$(n)) and birthRate.t:$(n)/estimate=true'>Scales birth rate of Yule prior for partition t:$(n)</connect>
             <connect srcID='YuleBirthRateScaler.t:$(n)'       targetID='mcmc' inputName='operator' if='inposterior(birthRate.t:$(n)) and birthRate.t:$(n)/estimate=true'>Scales birth rate of Yule prior for partition t:$(n)</connect>
-            <connect srcID='frequenciesDelta.t:$(n)'          targetID='mcmc' inputName='operator' if='inlikelihood(frequencies.s:$(n)) and frequencies.s:$(n)/estimate=true'>Estimates frequencies for binary covarios model</connect>
+
+            <connect srcID='frequenciesDelta.t:$(n)'          targetID='mcmc' inputName='operator' if='inlikelihood(frequencies.s:$(n)) and frequencies.s:$(n)/estimate=true'>Estimates frequencies for binary covarion model</connect>
+            <connect srcID='hFrequenciesDelta.t:$(n)'          targetID='mcmc' inputName='operator' if='inlikelihood(hiddenfrequencies.s:$(n)) and hiddenfrequencies.s:$(n)/estimate=true'>Estimates hidden frequencies for binary covarion model</connect>
 
             <connect srcID='treeScaler.t:$(n)'                targetID='mcmc' inputName='operator' if='inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'>Scales all internal nodes for tree t:$(n)</connect>
             <connect srcID='treeRootScaler.t:$(n)'            targetID='mcmc' inputName='operator' if='inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'>Scales root node for tree t:$(n)</connect>
@@ -289,6 +292,8 @@
             <connect srcID='wide.t:$(n)'                      targetID='mcmc' inputName='operator' if='inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'>Wide exchange performs global rearrangement of tree t:$(n)</connect>
             <connect srcID='WilsonBalding.t:$(n)'             targetID='mcmc' inputName='operator' if='inposterior(Tree.t:$(n)) and Tree.t:$(n)/estimate=true'>Performs Wilson-Balding global rearrangement of tree t:$(n)</connect>
             <connect srcID='strictClockUpDownOperator.c:$(n)' targetID='mcmc' inputName='operator' if='inlikelihood(clockRate.c:$(n)) and inlikelihood(Tree.t:$(n)) and Tree.t:$(n)/estimate=true and clockRate.c:$(n)/estimate=true'>Scale up substitution rate c:$(n) and scale down tree t:($n) </connect>
+
+
 
 
             <connect srcID='treeLikelihood.$(n)'              targetID='tracelog' inputName='log'/>

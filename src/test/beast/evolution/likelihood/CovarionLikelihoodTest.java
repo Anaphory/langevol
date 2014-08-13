@@ -53,7 +53,7 @@ public class CovarionLikelihoodTest extends LanguageTreeLikelihoodTest {
 	 }
 
 	public void testCovarionLikelihood(Alignment data, String logFile) throws Exception {
-		LogAnalyser analyser = new LogAnalyser(new String[] { "examples/testdata/" + logFile + ".log" }, 2000, 0);
+		LogAnalyser analyser = new LogAnalyser(new String[] { "examples/testdata/" + logFile + ".log" }, 0);
 		Double[] likelihoods = analyser.getTrace("likelihood");
 		Double[] clocks = analyser.getTrace("clock.rate");
 		Double[] freqs1s = analyser.getTrace("frequencies1");
