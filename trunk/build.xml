@@ -83,7 +83,7 @@
 		       fork="true"
 		       memoryinitialsize="256m"
 		       memorymaximumsize="256m"
-               src='1.6' target='1.6'>
+               source='1.8' target='1.8'>
 			<include name="beast/**/**" />
 			<include name="dr/**/**" />
 			<!-- compile JUnit test classes -->
@@ -114,6 +114,9 @@
 				<include name="org/**/*.class" />
 			</fileset>
 			<fileset dir="${beastiiclasspath}">
+				<include name="beast/**/*.class" />
+			</fileset>
+			<fileset dir="${beastclassic-classpath}">
 				<include name="beast/**/*.class" />
 			</fileset>
 			<zipgroupfileset dir="${libBeast2}" includes="jam.jar" />
