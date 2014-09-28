@@ -128,7 +128,7 @@ public class SimpleDeathModel extends SubstitutionModel.Base {
     }
 
     @Override
-    public boolean canHandleDataType(DataType dataType) throws Exception {
+    public boolean canHandleDataType(DataType dataType) {
    		return dataType.getStateCount() == 2;
     }
 
