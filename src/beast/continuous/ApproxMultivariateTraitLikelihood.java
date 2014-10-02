@@ -1,7 +1,7 @@
 package beast.continuous;
 
+
 import beast.core.Description;
-import beast.core.Loggable;
 import beast.evolution.alignment.AlignmentFromTraitMap;
 import beast.evolution.branchratemodel.BranchRateModel;
 import beast.evolution.likelihood.GenericTreeLikelihood;
@@ -22,6 +22,7 @@ public class ApproxMultivariateTraitLikelihood extends GenericTreeLikelihood {
 	double [][] position;
 	double [] branchLengths;
 	double [] sumLengths;
+	boolean needsUpdate = true;
 	
 	@Override
 	public void initAndValidate() throws Exception {
@@ -50,6 +51,7 @@ public class ApproxMultivariateTraitLikelihood extends GenericTreeLikelihood {
 		calcBranchLengths();
 		caclPositions();
 		logP = calcLogP();
+		needsUpdate = false;
 		return logP;
 	}
 
@@ -277,6 +279,34 @@ public class ApproxMultivariateTraitLikelihood extends GenericTreeLikelihood {
 	@Override
 	public boolean isStochastic() {
 		return true;
+	}
+
+	public double[] getPostion(int iDim) {
+		if (needsUpdate) {
+			try {
+				calculateLogP();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return position[iDim];
+	}
+	
+	@Override
+	public void store() {
+		needsUpdate = true;
+		super.store();
+	}
+	@Override
+	public void restore() {
+		needsUpdate = true;
+		super.restore();
+	}
+	
+	@Override
+	protected boolean requiresRecalculation() {
+		needsUpdate = true;
+		return super.requiresRecalculation();
 	}
 	
 }
