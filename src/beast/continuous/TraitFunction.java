@@ -2,23 +2,33 @@ package beast.continuous;
 
 
 
+
 import beast.core.Description;
 import beast.core.Input;
 import beast.core.Input.Validate;
 import beast.core.parameter.RealParameter;
+import beast.evolution.likelihood.GenericTreeLikelihood;
 import beast.evolution.tree.Tree;
 
 @Description("Helper class for logging locations from ApproxMultivariateTraitLikelihood")
 public class TraitFunction extends RealParameter {
-	public Input<ApproxMultivariateTraitLikelihood> likelihoodInput = new Input<ApproxMultivariateTraitLikelihood>("likelihood", "trait likelihood to be logged", Validate.REQUIRED);
+	public Input<GenericTreeLikelihood> likelihoodInput = new Input<GenericTreeLikelihood>("likelihood", "trait likelihood to be logged", Validate.REQUIRED);
 
 	ApproxMultivariateTraitLikelihood likelihood;
+	PFApproxMultivariateTraitLikelihood likelihood2;
 	Tree tree;
 	
 	@Override
 	public void initAndValidate() throws Exception {
-		likelihood = likelihoodInput.get();
-        tree =  ((Tree) (likelihood.treeInput.get()));
+		if (likelihoodInput.get() instanceof ApproxMultivariateTraitLikelihood) {
+			likelihood = (ApproxMultivariateTraitLikelihood)likelihoodInput.get();
+			tree = ((Tree) (likelihood.treeInput.get()));
+		} else if (likelihoodInput.get() instanceof PFApproxMultivariateTraitLikelihood) {
+			likelihood2 = (PFApproxMultivariateTraitLikelihood)likelihoodInput.get();
+	        tree = ((Tree) (likelihood2.treeInput.get()));
+		} else {
+			throw new RuntimeException("likelihood should be one of ApproxMultivariateTraitLikelihood or PFApproxMultivariateTraitLikelihood");
+		}
 	}
 
 	@Override
@@ -38,7 +48,9 @@ public class TraitFunction extends RealParameter {
 
 	@Override
 	public Double getMatrixValue(int i, int j) {
+		if (likelihood != null)
 		return likelihood.getPostion(i)[j];
+		return likelihood2.getPostion(i)[j];
 	}
 
 }
