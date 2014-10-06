@@ -14,9 +14,7 @@ import beast.evolution.tree.TreeInterface;
 import beast.util.Randomizer;
 
 @Description("Gibbs like operator to walk on a sphere")
-public class SphereGibbsWalker extends Operator {
-	public Input<RealParameter> locationInput = new Input<RealParameter>("location", "latitude/longitude pairs representing location", Validate.REQUIRED);
-	public Input<TreeInterface> treeInput = new Input<>("tree", "tree for whcih to infer geography", Validate.REQUIRED);
+public class SphereGibbsWalker extends MoveAboutMeanOperator {
     //public Input<Operator> operatorInput = new Input<Operator>("operator" ,"optional tree operator -- locations of filthy nodes will get a new locaiton");
     public Input<ContinuousSubstitutionModel> modelInput = new Input<>("model" ,"substitution model that determines the distribution over locations", Validate.REQUIRED);
 
@@ -27,9 +25,6 @@ public class SphereGibbsWalker extends Operator {
     public Input<Double> maxLongInput = new Input<Double>("maxLong","maximum longitude for grid", 180.0);
     //public Input<Double> longStepInput = new Input<Double>("longStep","stepsize in longitude direction for grid", 2.0);
 
-    public Input<Operator> operatorInput = new Input<Operator>("operator" ,"optional tree operator -- locations of filthy " +
-            "nodes will get a new location");
-     
     
     double minLat, maxLat, minLong, maxLong, latStep, longStep;
 	int nY;
@@ -37,10 +32,6 @@ public class SphereGibbsWalker extends Operator {
     double [] logP;
     
     ContinuousSubstitutionModel model;
-    TreeInterface tree;
-    RealParameter location;
-    
-	Operator operator;
 
     
     @Override
@@ -96,26 +87,6 @@ public class SphereGibbsWalker extends Operator {
         return 0;
 	}
     
-	private double traverse(Node node, boolean [] updated) {
-		double logHR = 0.0;
-		if (node.isLeaf()) {
-			return 0.0;
-		} else {
-			boolean needsUpdate = false;
-			for (Node child : node.getChildren()) {
-				updated[0] = false;
-				logHR += traverse(child, updated);
-				if (updated[0]) {
-					needsUpdate = true;
-				}
-			}
-			if (needsUpdate || node.isDirty() == Tree.IS_FILTHY) {
-				logHR += doproposal(node.getNr());
-				updated[0] = true;
-			}
-		}
-		return logHR;
-	}
 
 	double [] child1Loc = new double[2];
 	double [] child2Loc = new double[2];
