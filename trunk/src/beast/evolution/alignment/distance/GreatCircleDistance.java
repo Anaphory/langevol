@@ -43,6 +43,12 @@ public class GreatCircleDistance extends BEASTObject implements Distance {
 		
 		double angle = Math.acos(Math.sin(theta1)*Math.sin(theta2)+Math.cos(theta1) * Math.cos(theta2) * Math.cos(Deltalambda)); 
 
+		//double inverseVariance = 10;
+        //double logP =  0.5 * Math.log(angle * Math.sin(angle)) - 0.5 * angle*angle * inverseVariance;
+        // double logP = Math.log(Math.sqrt(angle * Math.sin(angle)) * inverseVariance) - 0.5 * angle*angle * inverseVariance;
+        //double logP = 0.5 * Math.log(angle * Math.sin(angle)) + 0.5 * Math.log(inverseVariance) - 0.5 * angle*angle * inverseVariance;
+        //return logP;
+
 		return angle * EARTHRADIUS;
 	}
 

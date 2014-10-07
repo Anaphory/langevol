@@ -21,7 +21,7 @@ public class MoveAboutMeanOperator extends Operator {
     public Input<BranchRateModel.Base> branchRateModelInput = new Input<BranchRateModel.Base>("branchRateModel",
             "A model describing the rates on the branches of the beast.tree.", new StrictClockModel());
     public Input<Double> windowSizeInput =
-            new Input<Double>("windowSize", "the size of the standard deviation for perturbing points", 1.0);
+            new Input<Double>("windowSize", "the size of the standard deviation for perturbing points", 5.0);
 
     
     public Input<Operator> operatorInput = new Input<Operator>("operator" ,"optional tree operator -- locations of filthy " +
@@ -127,8 +127,13 @@ public class MoveAboutMeanOperator extends Operator {
 		
 		double logHR = - d0 * d0 / (2.0 * windowSize) - d1 * d1 / (2.0 * windowSize);
 		
-		position[nodeNr][0] += Randomizer.nextGaussian() * windowSize;
-		position[nodeNr][1] += Randomizer.nextGaussian() * windowSize;
+		d0 = Randomizer.nextGaussian() * windowSize;
+		d1 = Randomizer.nextGaussian() * windowSize;
+		position[nodeNr][0] += d0;
+		position[nodeNr][1] += d1;
+
+		
+		logHR += + d0 * d0 / (2.0 * windowSize) + d1 * d1 / (2.0 * windowSize);
 
 		// assign new values to location
 		location.setValue(nodeNr * 2 + 0, position[nodeNr][0]);

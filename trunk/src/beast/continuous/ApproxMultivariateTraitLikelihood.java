@@ -2,6 +2,7 @@ package beast.continuous;
 
 
 import beast.core.Description;
+import beast.core.Input;
 import beast.evolution.alignment.AlignmentFromTraitMap;
 import beast.evolution.branchratemodel.BranchRateModel;
 import beast.evolution.likelihood.GenericTreeLikelihood;
@@ -14,7 +15,8 @@ import beast.util.Randomizer;
 
 @Description("Approximate likelihood by MAP approximation of internal states")
 public class ApproxMultivariateTraitLikelihood extends GenericTreeLikelihood {
-
+	public Input<Boolean> scaleByBranchLengthInput = new Input<Boolean>("scale", "scale by branch lengths for initial position", true);
+	
 	ContinuousSubstitutionModel substModel;
 	TreeInterface tree;
 	BranchRateModel clockModel;
@@ -23,6 +25,7 @@ public class ApproxMultivariateTraitLikelihood extends GenericTreeLikelihood {
 	double [] branchLengths;
 	double [] sumLengths;
 	boolean needsUpdate = true;
+	boolean scaleByBranchLength;
 	
 	@Override
 	public void initAndValidate() throws Exception {
@@ -31,6 +34,7 @@ public class ApproxMultivariateTraitLikelihood extends GenericTreeLikelihood {
 		SiteModel siteModel = (SiteModel) siteModelInput.get();
 		substModel = (ContinuousSubstitutionModel) siteModel.substModelInput.get();
 		tree = treeInput.get();
+		scaleByBranchLength = scaleByBranchLengthInput.get();
 		
 		// initialise leaf positions
 		position = new double[tree.getNodeCount()][2];
@@ -44,6 +48,19 @@ public class ApproxMultivariateTraitLikelihood extends GenericTreeLikelihood {
 		sumLengths = new double[tree.getNodeCount()];
 		
 	}
+	
+	@Override
+    public double getCurrentLogP() {
+        double logP = Double.NaN;
+		try {
+			logP = calculateLogP();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        return logP;
+    }
+
 	
 	@Override
 	public double calculateLogP() throws Exception {
@@ -86,8 +103,27 @@ public class ApproxMultivariateTraitLikelihood extends GenericTreeLikelihood {
 	
 	void caclPositions() {
 		initByMean(tree.getRoot());
-		resetMean2(tree.getRoot());
+		resetMeanDown(tree.getRoot());
 		
+		// there is no point in propagating up an down again: delta is always zero 
+//		double [][] oldPosition = new double[tree.getNodeCount()][2];
+//		for (int i = 0; i < 5; i++) {
+//			for (int j = tree.getLeafNodeCount(); j < oldPosition.length; j++) {
+//				oldPosition[i][0] = position[i][0];
+//				oldPosition[i][1] = position[i][1];
+//			}
+//			resetMeanDown(tree.getRoot());
+//			resetMeanUp(tree.getRoot());
+//			
+//			double max = 0;
+//			for (int j = tree.getLeafNodeCount(); j < oldPosition.length; j++) {
+//				double delta0 = oldPosition[i][0] - position[i][0];
+//				double delta1 = oldPosition[i][1] - position[i][1];
+//				max = Math.max(max, Math.max(Math.abs(delta0), Math.abs(delta1)));
+//			}
+//			System.err.print(max);
+//		}
+//		System.err.println();
 	}
 	
 	void initByMean(Node node) {
@@ -103,10 +139,10 @@ public class ApproxMultivariateTraitLikelihood extends GenericTreeLikelihood {
 	}		
 	
 	/** bottom up recalculation **/
-	void resetMean(Node node) {
+	void resetMeanUp(Node node) {
 		if (!node.isLeaf()) {
-			resetMean(node.getLeft());
-			resetMean(node.getRight());
+			resetMeanUp(node.getLeft());
+			resetMeanUp(node.getRight());
 			
 			int nodeNr = node.getNr();
 			int child1 = node.getLeft().getNr();
@@ -121,7 +157,7 @@ public class ApproxMultivariateTraitLikelihood extends GenericTreeLikelihood {
 	}
 
 	/** top down recalculation **/
-	void resetMean2(Node node) {
+	void resetMeanDown(Node node) {
 		if (!node.isLeaf()) {
 			int nodeNr = node.getNr();
 			int child1 = node.getLeft().getNr();
@@ -133,16 +169,22 @@ public class ApproxMultivariateTraitLikelihood extends GenericTreeLikelihood {
 				setHalfWayPosition(nodeNr, child1, child2, parent);
 			}
 
-			resetMean2(node.getLeft());
-			resetMean2(node.getRight());
+			resetMeanDown(node.getLeft());
+			resetMeanDown(node.getRight());
 		}
 	}
 
 	private void setHalfWayPosition(int nodeNr, int child1, int child2) {
 		// start in weighted middle of the children
-		position[nodeNr][0] = (position[child1][0] * branchLengths[child1] + position[child2][0] * branchLengths[child2]) / (branchLengths[child1] + branchLengths[child2]);
-		position[nodeNr][1] = (position[child1][1] * branchLengths[child1] + position[child2][1] * branchLengths[child2]) / (branchLengths[child1] + branchLengths[child2]);
-		
+		if (scaleByBranchLength) {
+			position[nodeNr][0] = (position[child1][0] * branchLengths[child1] + position[child2][0] * branchLengths[child2]) / (branchLengths[child1] + branchLengths[child2]);
+			position[nodeNr][1] = (position[child1][1] * branchLengths[child1] + position[child2][1] * branchLengths[child2]) / (branchLengths[child1] + branchLengths[child2]);
+		} else{
+			position[nodeNr][0] = (position[child1][0] + position[child2][0]) / 2.0;
+			position[nodeNr][1] = (position[child1][1] + position[child2][1]) / 2.0;
+		}
+		if (MAX_ITER <= 0) {return;}
+
 		// optimise for subst model
 		double [] newPos = new double[2];
 		newPos[0] = position[nodeNr][0]; 
@@ -206,9 +248,16 @@ public class ApproxMultivariateTraitLikelihood extends GenericTreeLikelihood {
 
 	private void setHalfWayPosition(int nodeNr, int child1, int child2, int parent) {
 		// start in weighted middle of the children and parent location
-		position[nodeNr][0] = (position[child1][0] * branchLengths[child1] + position[child2][0] * branchLengths[child2] + position[parent][0] * branchLengths[nodeNr]) / sumLengths[nodeNr];
-		position[nodeNr][1] = (position[child1][1] * branchLengths[child1] + position[child2][1] * branchLengths[child2] + position[parent][1] * branchLengths[nodeNr]) / sumLengths[nodeNr];
+		if (scaleByBranchLength) {
+			position[nodeNr][0] = (position[child1][0] * branchLengths[child1] + position[child2][0] * branchLengths[child2] + position[parent][0] * branchLengths[nodeNr]) / sumLengths[nodeNr];
+			position[nodeNr][1] = (position[child1][1] * branchLengths[child1] + position[child2][1] * branchLengths[child2] + position[parent][1] * branchLengths[nodeNr]) / sumLengths[nodeNr];
+		} else {
+			position[nodeNr][0] = (position[child1][0] + position[child2][0] + position[parent][0]) / 3.0;
+			position[nodeNr][1] = (position[child1][1] + position[child2][1] + position[parent][1]) / 3.0;
+		}
 
+		if (MAX_ITER <= 0) {return;}
+		
 		// optimise for subst model
 		double [] newPos = new double[2];
 		newPos[0] = position[nodeNr][0]; 

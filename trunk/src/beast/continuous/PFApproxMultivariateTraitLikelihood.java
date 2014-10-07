@@ -16,10 +16,14 @@ import beast.util.Randomizer;
 
 @Description("Approximate likelihood by particle filter approximation")
 public class PFApproxMultivariateTraitLikelihood extends GenericTreeLikelihood {
-	public Input<Integer> nrOfParticlesInput = new Input<Integer>("nrOfParticles", "number of particles to use", 10);
+	public Input<Integer> nrOfParticlesInput = new Input<Integer>("nrOfParticles", "number of particles to use", 25);//100
 	public Input<Integer> nrOfIterationsInput = new Input<Integer>("nrOfIterations", "number of iterations to run the particle filter", 10);
+	public Input<Integer> rangeSizeInput = new Input<Integer>("nrrange", "number of random samples for placing a node", 10);//10
 	
-	double epsilon = 0.5;
+	public Input<Boolean> scaleByBranchLengthInput = new Input<Boolean>("scale", "scale by branch lengths for initial position", false);
+
+	double epsilon = 2.0;
+	boolean scaleByBranchLength;
 
 	class LeafParticleSet {
 		int particleCount;
@@ -124,6 +128,7 @@ public class PFApproxMultivariateTraitLikelihood extends GenericTreeLikelihood {
 	BranchRateModel clockModel;
 	int particleCount;
 	int iterationCount;
+	int rangeSize;
 	
 	double [][] position;
 	double [] branchLengths;
@@ -132,9 +137,13 @@ public class PFApproxMultivariateTraitLikelihood extends GenericTreeLikelihood {
 	
 	LeafParticleSet [] particleSets;
 	
+	/** particles x positions x 2 **/
+	double [][][] particlePosition;
+	
 	@Override
 	public void initAndValidate() throws Exception {
 		super.initAndValidate();
+		scaleByBranchLength = scaleByBranchLengthInput.get();
 		clockModel = branchRateModelInput.get();
 		SiteModel siteModel = (SiteModel) siteModelInput.get();
 		substModel = (ContinuousSubstitutionModel) siteModel.substModelInput.get();
@@ -154,26 +163,49 @@ public class PFApproxMultivariateTraitLikelihood extends GenericTreeLikelihood {
 		
 		particleCount = nrOfParticlesInput.get();
 		iterationCount = nrOfIterationsInput.get();
+		rangeSize = rangeSizeInput.get();
 
 		// set up particles
-		particleSets = new LeafParticleSet[tree.getNodeCount()];
-		for (int i = 0; i < tree.getLeafNodeCount(); i++) {
-			particleSets[i] = new LeafParticleSet(i, particleCount, position[i]);
-		}
-		for (int i = tree.getLeafNodeCount(); i < tree.getNodeCount(); i++) {
-			particleSets[i] = new ParticleSet(i, particleCount, position[i]);
-		}
+//		particleSets = new LeafParticleSet[tree.getNodeCount()];
+//		for (int i = 0; i < tree.getLeafNodeCount(); i++) {
+//			particleSets[i] = new LeafParticleSet(i, particleCount, position[i]);
+//		}
+//		for (int i = tree.getLeafNodeCount(); i < tree.getNodeCount(); i++) {
+//			particleSets[i] = new ParticleSet(i, particleCount, position[i]);
+//		}
 		
+		
+		// set up particles
+		particlePosition = new double[particleCount][tree.getNodeCount()][2];
+		for (double [][] pposition : particlePosition) {
+			for (int i = 0; i < tree.getLeafNodeCount(); i++) {
+				pposition[i] = position[i];
+			}
+		}
 	}
-	
+
+	@Override
+    public double getCurrentLogP() {
+        double logP = Double.NaN;
+		try {
+			logP = calculateLogP();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        return logP;
+    }
+
 	@Override
 	public double calculateLogP() throws Exception {
 		logP = 0.0;
 		calcBranchLengths();
 		setUpInitialPositions();
 		for (int i = 0; i < iterationCount; i++) {
-			resampleUp(tree.getRoot());
-			resampleDown(tree.getRoot());
+			sampleUp(tree.getRoot());
+			resample();
+			sampleDown(tree.getRoot());
+			resample();
 		}
 		
 		
@@ -182,27 +214,119 @@ public class PFApproxMultivariateTraitLikelihood extends GenericTreeLikelihood {
 		return logP;
 	}
 
-	void resampleUp(Node node) {
+	void sampleUp(Node node) {
 		if (!node.isLeaf()) {
-			particleSets[node.getNr()].randomize();
-			particleSets[node.getNr()].resample(substModel);
+			for (double [][] pposition : particlePosition) {
+				choosePosition(node.getNr(), pposition);
+			}			
 
-			resampleUp(node.getLeft());
-			resampleUp(node.getRight());
+			//particleSets[node.getNr()].randomize();
+			//particleSets[node.getNr()].resample(substModel);
+
+			sampleUp(node.getLeft());
+			sampleUp(node.getRight());
 		}
 	}
 
-	void resampleDown(Node node) {
+	void sampleDown(Node node) {
 		if (!node.isLeaf()) {
-			resampleDown(node.getLeft());
-			resampleDown(node.getRight());
-			particleSets[node.getNr()].randomize();
-			particleSets[node.getNr()].resample(substModel);
+			sampleDown(node.getLeft());
+			sampleDown(node.getRight());
+			
+			for (double [][] pposition : particlePosition) {
+				choosePosition(node.getNr(), pposition);
+			}
+			
+			//particleSets[node.getNr()].randomize();
+			//particleSets[node.getNr()].resample(substModel);
 
 		}
 	}
+
+	private void choosePosition(int nodeNr, double[][] pposition) {
+		// randomize
+		double [][] newPosition = new double[rangeSize][2];
+		for (int i = 0; i < rangeSize; i++) {
+			newPosition[i][0] = pposition[nodeNr][0] + Randomizer.nextDouble() * epsilon - epsilon / 2.0;			
+			newPosition[i][1] = pposition[nodeNr][1] + Randomizer.nextDouble() * epsilon - epsilon / 2.0;
+		}
+		
+		// resample
+		Node node = tree.getNode(nodeNr);
+		int iChild1 = node.getLeft().getNr();
+		int iChild2 = node.getRight().getNr();
+		
+		
+		double [] logP = new double[rangeSize];
+		if (node.isRoot()) {
+			for (int i = 0; i < rangeSize; i++) {
+				double [] nodePosition = newPosition[i];
+				logP[i] = substModel.getLogLikelihood(pposition[iChild1], nodePosition, branchLengths[iChild1]) +
+						substModel.getLogLikelihood(pposition[iChild2], nodePosition, branchLengths[iChild2]);
+			}
+		} else {
+			int iParent = node.getParent().getNr();
+			for (int i = 0; i < rangeSize; i++) {
+				double [] nodePosition = newPosition[i];
+				logP[i] = substModel.getLogLikelihood(pposition[iChild1], nodePosition, branchLengths[iChild1]) +
+						substModel.getLogLikelihood(pposition[iChild2], nodePosition, branchLengths[iChild2]) +
+						substModel.getLogLikelihood(nodePosition, pposition[iParent], branchLengths[node.getNr()]);
+			}
+		}
+		double max = logP[0];
+		for (double d : logP) {
+			max = Math.max(d,  max);
+		}
+		for (int i = 0; i < rangeSize; i++) {
+			logP[i] = Math.exp(logP[i] - max);
+		}
+		int k = Randomizer.randomChoicePDF(logP);
+		pposition[nodeNr][0] = newPosition[k][0];
+		pposition[nodeNr][1] = newPosition[k][1];
+	}
+
 	
+	void resample() {
+		double [] logP = new double[particleCount];
+		// logP is mean of logP's of the particles(?)
+		for (int i = 0; i < particleCount;  i++) {
+			for (Node node : tree.getNodesAsArray()) {
+				if (!node.isRoot()) {
+//					logP += substModel.getLogLikelihood(
+//							particleSets[node.getParent().getNr()].getPosition(i), 
+//							particleSets[node.getNr()].getPosition(i), 
+//							branchLengths[node.getNr()]);
+					logP[i] += substModel.getLogLikelihood(
+							particlePosition[i][node.getParent().getNr()], 
+							particlePosition[i][node.getNr()], 
+							branchLengths[node.getNr()]);
+				}
+			}
+		}
+		double max = logP[0];
+		for (double d : logP) {
+			max = Math.max(d,  max);
+		}
+		for (int i = 0; i < particleCount; i++) {
+			logP[i] = Math.exp(logP[i] - max);
+		}
+		
+		double [][][] newposition = new double[particleCount][tree.getNodeCount()][2];
+		for (int i = 0; i < particleCount; i++) {
+			int k = Randomizer.randomChoicePDF(logP);
+			copy(newposition[i], particlePosition[k]);
+		}
+		particlePosition = newposition;
+	}
+
 	
+	private void copy(double[][] dest, double[][] src) {
+		for (int i = 0; i < dest.length; i++) {
+			dest[i][0] = src[i][0];
+			dest[i][1] = src[i][1];
+		}
+	}
+
 	void calcBranchLengths() {
 		for (Node node : tree.getNodesAsArray()) {
 			if (!node.isRoot()) {
@@ -225,9 +349,13 @@ public class PFApproxMultivariateTraitLikelihood extends GenericTreeLikelihood {
 		for (int i = 0; i < particleCount;  i++) {
 			for (Node node : tree.getNodesAsArray()) {
 				if (!node.isRoot()) {
+//					logP += substModel.getLogLikelihood(
+//							particleSets[node.getParent().getNr()].getPosition(i), 
+//							particleSets[node.getNr()].getPosition(i), 
+//							branchLengths[node.getNr()]);
 					logP += substModel.getLogLikelihood(
-							particleSets[node.getParent().getNr()].getPosition(i), 
-							particleSets[node.getNr()].getPosition(i), 
+							particlePosition[i][node.getParent().getNr()], 
+							particlePosition[i][node.getNr()], 
 							branchLengths[node.getNr()]);
 				}
 			}
@@ -240,8 +368,11 @@ public class PFApproxMultivariateTraitLikelihood extends GenericTreeLikelihood {
 		initByMean(tree.getRoot());
 		resetMean2(tree.getRoot());
 		
-		for (int i = tree.getLeafNodeCount(); i < tree.getNodeCount(); i++) {
-			particleSets[i].init(position[i]);
+		for (double [][] pposition : particlePosition) {
+			for (int i = tree.getLeafNodeCount(); i < tree.getNodeCount(); i++) {
+				pposition[i][0] = position[i][0];
+				pposition[i][1] = position[i][1];
+			}
 		}
 	}
 	
@@ -295,141 +426,27 @@ public class PFApproxMultivariateTraitLikelihood extends GenericTreeLikelihood {
 
 	private void setHalfWayPosition(int nodeNr, int child1, int child2) {
 		// start in weighted middle of the children
-		position[nodeNr][0] = (position[child1][0] * branchLengths[child1] + position[child2][0] * branchLengths[child2]) / (branchLengths[child1] + branchLengths[child2]);
-		position[nodeNr][1] = (position[child1][1] * branchLengths[child1] + position[child2][1] * branchLengths[child2]) / (branchLengths[child1] + branchLengths[child2]);
-		
-		// optimise for subst model
-		double [] newPos = new double[2];
-		newPos[0] = position[nodeNr][0]; 
-		newPos[1] = position[nodeNr][1]; 
-
-		double logP = 
-				substModel.getLogLikelihood(position[nodeNr], position[child1], branchLengths[child1]) +
-				substModel.getLogLikelihood(position[nodeNr], position[child2], branchLengths[child2]);
-		
-		// optimise by random walk
-		int i = 0;
-		double epsilon = 0.5;
-		while (i < MAX_ITER && epsilon > MIN_EPSILON) {
-//			boolean progress = false;
-//			newPos[0] += epsilon;
-//			double newLogP = 
-//					substModel.getLogLikelihood(newPos, position[child1], branchLengths[child1]) +
-//					substModel.getLogLikelihood(newPos, position[child2], branchLengths[child2]);
-//			double dX = newLogP - logP;
-//			if (dX > 0) {
-//				logP = newLogP;
-//				progress = true;
-//			} else {
-//				newPos[0] -= epsilon;
-//			}
-//			newPos[1] += epsilon;
-//			newLogP = 
-//					substModel.getLogLikelihood(newPos, position[child1], branchLengths[child1]) +
-//					substModel.getLogLikelihood(newPos, position[child2], branchLengths[child2]);
-//			double dY= newLogP - logP;
-//			if (dY > 0) {
-//				logP = newLogP;
-//				progress = true;
-//			} else {
-//				newPos[1] -= epsilon;
-//			}
-//			if (progress) {
-//				position[nodeNr][0] = newPos[0]; 
-//				position[nodeNr][1] = newPos[1];
-//				epsilon *= 1.5;
-//			} else {
-//				epsilon /= 1.5;
-//			}
-			
-			newPos[0] += Randomizer.nextDouble() * epsilon - epsilon / 2.0;			
-			newPos[1] += Randomizer.nextDouble() * epsilon - epsilon / 2.0;
-			double newLogP = 
-					substModel.getLogLikelihood(newPos, position[child1], branchLengths[child1]) +
-					substModel.getLogLikelihood(newPos, position[child2], branchLengths[child2]);
-			if (newLogP > logP) {
-				logP = newLogP;
-				position[nodeNr][0] = newPos[0]; 
-				position[nodeNr][1] = newPos[1]; 
-			} else {
-				newPos[0] = position[nodeNr][0]; 
-				newPos[1] = position[nodeNr][1]; 
-			}
-			i++;
+		if (scaleByBranchLength) {
+			position[nodeNr][0] = (position[child1][0] * branchLengths[child1] + position[child2][0] * branchLengths[child2]) / (branchLengths[child1] + branchLengths[child2]);
+			position[nodeNr][1] = (position[child1][1] * branchLengths[child1] + position[child2][1] * branchLengths[child2]) / (branchLengths[child1] + branchLengths[child2]);
+		} else {
+			position[nodeNr][0] = (position[child1][0] + position[child2][0]) / 2.0;
+			position[nodeNr][1] = (position[child1][1] + position[child2][1]) / 2.0;
 		}
+		
 	}
 
 	private void setHalfWayPosition(int nodeNr, int child1, int child2, int parent) {
 		// start in weighted middle of the children and parent location
-		position[nodeNr][0] = (position[child1][0] * branchLengths[child1] + position[child2][0] * branchLengths[child2] + position[parent][0] * branchLengths[nodeNr]) / sumLengths[nodeNr];
-		position[nodeNr][1] = (position[child1][1] * branchLengths[child1] + position[child2][1] * branchLengths[child2] + position[parent][1] * branchLengths[nodeNr]) / sumLengths[nodeNr];
-
-		// optimise for subst model
-		double [] newPos = new double[2];
-		newPos[0] = position[nodeNr][0]; 
-		newPos[1] = position[nodeNr][1]; 
-
-		double logP = 
-				substModel.getLogLikelihood(position[nodeNr], position[child1], branchLengths[child1]) +
-				substModel.getLogLikelihood(position[nodeNr], position[child2], branchLengths[child2]) +
-				substModel.getLogLikelihood(position[parent], position[nodeNr], branchLengths[nodeNr]);
-		
-		// optimise by random walk
-		int i = 0;
-		double epsilon = 0.5;
-		while (i < MAX_ITER && epsilon > MIN_EPSILON) {
-//			boolean progress = false;
-//			newPos[0] += epsilon;
-//			double newLogP = 
-//					substModel.getLogLikelihood(newPos, position[child1], branchLengths[child1]) +
-//					substModel.getLogLikelihood(newPos, position[child2], branchLengths[child2]) +
-//					substModel.getLogLikelihood(position[parent], newPos, branchLengths[nodeNr]);
-//			double dX = newLogP - logP;
-//			if (dX > 0) {
-//				logP = newLogP;
-//				progress = true;
-//			} else {
-//				newPos[0] -= epsilon;
-//			}
-//			newPos[1] += epsilon;
-//			newLogP = 
-//					substModel.getLogLikelihood(newPos, position[child1], branchLengths[child1]) +
-//					substModel.getLogLikelihood(newPos, position[child2], branchLengths[child2]) +
-//					substModel.getLogLikelihood(position[parent], newPos, branchLengths[nodeNr]);
-//			double dY= newLogP - logP;
-//			if (dY > 0) {
-//				logP = newLogP;
-//				progress = true;
-//			} else {
-//				newPos[1] -= epsilon;
-//			}
-//			if (progress) {
-//				position[nodeNr][0] = newPos[0]; 
-//				position[nodeNr][1] = newPos[1];
-//				epsilon *= 1.5;
-//			} else {
-//				epsilon /= 1.5;
-//			}
-
-			newPos[0] += Randomizer.nextDouble() * epsilon - epsilon / 2.0;			
-			newPos[1] += Randomizer.nextDouble() * epsilon - epsilon / 2.0;
-			double newLogP = 
-					substModel.getLogLikelihood(newPos, position[child1], branchLengths[child1]) +
-					substModel.getLogLikelihood(newPos, position[child2], branchLengths[child2]) +
-					substModel.getLogLikelihood(position[parent], newPos, branchLengths[nodeNr]);
-			if (newLogP > logP) {
-				logP = newLogP;
-				position[nodeNr][0] = newPos[0]; 
-				position[nodeNr][1] = newPos[1]; 
-			} else {
-				newPos[0] = position[nodeNr][0]; 
-				newPos[1] = position[nodeNr][1]; 
-			}
-			i++;
+		if (scaleByBranchLength) {
+			position[nodeNr][0] = (position[child1][0] * branchLengths[child1] + position[child2][0] * branchLengths[child2] + position[parent][0] * branchLengths[nodeNr]) / sumLengths[nodeNr];
+			position[nodeNr][1] = (position[child1][1] * branchLengths[child1] + position[child2][1] * branchLengths[child2] + position[parent][1] * branchLengths[nodeNr]) / sumLengths[nodeNr];
+		} else {
+			position[nodeNr][0] = (position[child1][0] + position[child2][0] + position[parent][0]) / 3.0;
+			position[nodeNr][1] = (position[child1][1] + position[child2][1] + position[parent][1]) / 3.0;
 		}
+
 	}
-	final static int MAX_ITER = 0;
-	final static double MIN_EPSILON = 0.001;
 	
 	@Override
 	public boolean isStochastic() {
@@ -444,7 +461,7 @@ public class PFApproxMultivariateTraitLikelihood extends GenericTreeLikelihood {
 				e.printStackTrace();
 			}
 		}
-		return position[iDim];
+		return particlePosition[0][iDim];
 	}
 	
 	@Override
