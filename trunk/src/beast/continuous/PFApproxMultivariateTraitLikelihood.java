@@ -20,7 +20,7 @@ public class PFApproxMultivariateTraitLikelihood extends GenericTreeLikelihood {
 	public Input<Integer> nrOfIterationsInput = new Input<Integer>("nrOfIterations", "number of iterations to run the particle filter", 10);
 	public Input<Integer> rangeSizeInput = new Input<Integer>("nrrange", "number of random samples for placing a node", 10);//10
 	
-	public Input<Boolean> scaleByBranchLengthInput = new Input<Boolean>("scale", "scale by branch lengths for initial position", false);
+	public Input<Boolean> scaleByBranchLengthInput = new Input<Boolean>("scale", "scale by branch lengths for initial position", true);
 
 	double epsilon = 2.0;
 	boolean scaleByBranchLength;
@@ -427,8 +427,13 @@ public class PFApproxMultivariateTraitLikelihood extends GenericTreeLikelihood {
 	private void setHalfWayPosition(int nodeNr, int child1, int child2) {
 		// start in weighted middle of the children
 		if (scaleByBranchLength) {
-			position[nodeNr][0] = (position[child1][0] * branchLengths[child1] + position[child2][0] * branchLengths[child2]) / (branchLengths[child1] + branchLengths[child2]);
-			position[nodeNr][1] = (position[child1][1] * branchLengths[child1] + position[child2][1] * branchLengths[child2]) / (branchLengths[child1] + branchLengths[child2]);
+			double b1 = 1.0/Math.sqrt(branchLengths[child1]);
+			double b2 = 1.0/Math.sqrt(branchLengths[child2]);
+			double len = b1 + b2;
+			position[nodeNr][0] = (position[child1][0] * b1 + position[child2][0] * b2) / len;
+			position[nodeNr][1] = (position[child1][1] * b1 + position[child2][1] * b2) / len;
+			// position[nodeNr][0] = (position[child1][0] * branchLengths[child1] + position[child2][0] * branchLengths[child2]) / (branchLengths[child1] + branchLengths[child2]);
+			// position[nodeNr][1] = (position[child1][1] * branchLengths[child1] + position[child2][1] * branchLengths[child2]) / (branchLengths[child1] + branchLengths[child2]);
 		} else {
 			position[nodeNr][0] = (position[child1][0] + position[child2][0]) / 2.0;
 			position[nodeNr][1] = (position[child1][1] + position[child2][1]) / 2.0;
@@ -439,8 +444,14 @@ public class PFApproxMultivariateTraitLikelihood extends GenericTreeLikelihood {
 	private void setHalfWayPosition(int nodeNr, int child1, int child2, int parent) {
 		// start in weighted middle of the children and parent location
 		if (scaleByBranchLength) {
-			position[nodeNr][0] = (position[child1][0] * branchLengths[child1] + position[child2][0] * branchLengths[child2] + position[parent][0] * branchLengths[nodeNr]) / sumLengths[nodeNr];
-			position[nodeNr][1] = (position[child1][1] * branchLengths[child1] + position[child2][1] * branchLengths[child2] + position[parent][1] * branchLengths[nodeNr]) / sumLengths[nodeNr];
+			double b1 = 1.0/Math.sqrt(branchLengths[child1]);
+			double b2 = 1.0/Math.sqrt(branchLengths[child2]);
+			double p = 1.0/Math.sqrt(branchLengths[nodeNr]);
+			double len = b1 + b2 + p;
+			position[nodeNr][0] = (position[child1][0] * b1 + position[child2][0] * b2 + position[parent][0] * p) / len;
+			position[nodeNr][1] = (position[child1][1] * b1 + position[child2][1] * b2 + position[parent][1] * p) / len;
+			// position[nodeNr][0] = (position[child1][0] * branchLengths[child1] + position[child2][0] * branchLengths[child2] + position[parent][0] * branchLengths[nodeNr]) / sumLengths[nodeNr];
+			// position[nodeNr][1] = (position[child1][1] * branchLengths[child1] + position[child2][1] * branchLengths[child2] + position[parent][1] * branchLengths[nodeNr]) / sumLengths[nodeNr];
 		} else {
 			position[nodeNr][0] = (position[child1][0] + position[child2][0] + position[parent][0]) / 3.0;
 			position[nodeNr][1] = (position[child1][1] + position[child2][1] + position[parent][1]) / 3.0;

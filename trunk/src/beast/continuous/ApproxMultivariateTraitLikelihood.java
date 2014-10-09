@@ -24,6 +24,8 @@ public class ApproxMultivariateTraitLikelihood extends GenericTreeLikelihood {
 	double [][] position;
 	double [] branchLengths;
 	double [] sumLengths;
+	double [] parentweight;
+
 	boolean needsUpdate = true;
 	boolean scaleByBranchLength;
 	
@@ -46,6 +48,7 @@ public class ApproxMultivariateTraitLikelihood extends GenericTreeLikelihood {
 		}
 		branchLengths = new double[tree.getNodeCount()];
 		sumLengths = new double[tree.getNodeCount()];
+		parentweight = new double[tree.getNodeCount()];
 		
 	}
 	
@@ -102,28 +105,33 @@ public class ApproxMultivariateTraitLikelihood extends GenericTreeLikelihood {
 	}
 	
 	void caclPositions() {
+		final double EPSILON = 1e-8;
+		
 		initByMean(tree.getRoot());
 		resetMeanDown(tree.getRoot());
 		
-		// there is no point in propagating up an down again: delta is always zero 
-//		double [][] oldPosition = new double[tree.getNodeCount()][2];
-//		for (int i = 0; i < 5; i++) {
-//			for (int j = tree.getLeafNodeCount(); j < oldPosition.length; j++) {
-//				oldPosition[i][0] = position[i][0];
-//				oldPosition[i][1] = position[i][1];
-//			}
-//			resetMeanDown(tree.getRoot());
-//			resetMeanUp(tree.getRoot());
-//			
-//			double max = 0;
-//			for (int j = tree.getLeafNodeCount(); j < oldPosition.length; j++) {
-//				double delta0 = oldPosition[i][0] - position[i][0];
-//				double delta1 = oldPosition[i][1] - position[i][1];
-//				max = Math.max(max, Math.max(Math.abs(delta0), Math.abs(delta1)));
-//			}
-//			System.err.print(max);
-//		}
-//		System.err.println();
+		if (scaleByBranchLength) {
+			for (int i = 0; i < 50; i++) {
+				double [][] oldPosition = new double[tree.getNodeCount()][2];
+				for (int j = tree.getLeafNodeCount(); j < oldPosition.length; j++) {
+					oldPosition[j][0] = position[j][0];
+					oldPosition[j][1] = position[j][1];
+				}
+				resetMeanDown(tree.getRoot());
+				resetMeanUp(tree.getRoot());
+				
+				double max = 0;
+				for (int j = tree.getLeafNodeCount(); j < oldPosition.length; j++) {
+					double delta0 = oldPosition[j][0] - position[j][0];
+					double delta1 = oldPosition[j][1] - position[j][1];
+					max = Math.max(max, Math.max(Math.abs(delta0), Math.abs(delta1)));
+				}
+				if (max < EPSILON) {
+					// System.err.println(i + " maxdelta = " + max);
+					break;
+				}
+			}
+		}
 	}
 	
 	void initByMean(Node node) {
@@ -163,7 +171,7 @@ public class ApproxMultivariateTraitLikelihood extends GenericTreeLikelihood {
 			int child1 = node.getLeft().getNr();
 			int child2 = node.getRight().getNr();
 			if (node.isRoot()) {
-				setHalfWayPosition(nodeNr, child1, child2);
+				//setHalfWayPosition(nodeNr, child1, child2);
 			} else {
 				int parent = node.getParent().getNr();
 				setHalfWayPosition(nodeNr, child1, child2, parent);
@@ -174,14 +182,42 @@ public class ApproxMultivariateTraitLikelihood extends GenericTreeLikelihood {
 		}
 	}
 
-	private void setHalfWayPosition(int nodeNr, int child1, int child2) {
+	void setHalfWayPosition(int nodeNr, int child1, int child2) {
 		// start in weighted middle of the children
+		
+
 		if (scaleByBranchLength) {
-			position[nodeNr][0] = (position[child1][0] * branchLengths[child1] + position[child2][0] * branchLengths[child2]) / (branchLengths[child1] + branchLengths[child2]);
-			position[nodeNr][1] = (position[child1][1] * branchLengths[child1] + position[child2][1] * branchLengths[child2]) / (branchLengths[child1] + branchLengths[child2]);
+			double b1 = 1.0/Math.sqrt(branchLengths[child1]);
+			double b2 = 1.0/Math.sqrt(branchLengths[child2]);
+			double len = b1 + b2;
+			position[nodeNr][0] = (position[child1][0] * b1 + position[child2][0] * b2) / len;
+			position[nodeNr][1] = (position[child1][1] * b1 + position[child2][1] * b2) / len;
+			//position[nodeNr][0] = (position[child1][0] * branchLengths[child1] + position[child2][0] * branchLengths[child2]) / (branchLengths[child1] + branchLengths[child2]);
+			//position[nodeNr][1] = (position[child1][1] * branchLengths[child1] + position[child2][1] * branchLengths[child2]) / (branchLengths[child1] + branchLengths[child2]);
 		} else{
-			position[nodeNr][0] = (position[child1][0] + position[child2][0]) / 2.0;
-			position[nodeNr][1] = (position[child1][1] + position[child2][1]) / 2.0;
+			double b1 = 1.0/Math.sqrt(branchLengths[child1]);
+			double b2 = 1.0/Math.sqrt(branchLengths[child2]);
+			if (tree.getNode(nodeNr).isRoot()) {
+				double len = b1 + b2;
+				b1 = b1 / len;
+				b2 = b2 / len;
+				double w = (1.0 - b1 * parentweight[child1] - b2 * parentweight[child2]);
+				b1 /= w;
+				b2 /= w;
+			} else {
+				double p = 1.0/Math.sqrt(branchLengths[nodeNr]);
+				double len = b1 + b2 + p;
+				b1 /= len;
+				b2 /= len;
+				p /= len;
+				double w = (1.0 - b1 * parentweight[child1] - b2 * parentweight[child2]);
+				b1 /= w;
+				b2 /= w;
+				p /= w;
+				parentweight[nodeNr] = p;
+			}
+			position[nodeNr][0] = position[child1][0] * b1 + position[child2][0] * b2;
+			position[nodeNr][1] = position[child1][1] * b1 + position[child2][1] * b2;
 		}
 		if (MAX_ITER <= 0) {return;}
 
@@ -246,14 +282,31 @@ public class ApproxMultivariateTraitLikelihood extends GenericTreeLikelihood {
 		}
 	}
 
-	private void setHalfWayPosition(int nodeNr, int child1, int child2, int parent) {
+	void setHalfWayPosition(int nodeNr, int child1, int child2, int parent) {
 		// start in weighted middle of the children and parent location
 		if (scaleByBranchLength) {
-			position[nodeNr][0] = (position[child1][0] * branchLengths[child1] + position[child2][0] * branchLengths[child2] + position[parent][0] * branchLengths[nodeNr]) / sumLengths[nodeNr];
-			position[nodeNr][1] = (position[child1][1] * branchLengths[child1] + position[child2][1] * branchLengths[child2] + position[parent][1] * branchLengths[nodeNr]) / sumLengths[nodeNr];
+			double b1 = 1.0/Math.sqrt(branchLengths[child1]);
+			double b2 = 1.0/Math.sqrt(branchLengths[child2]);
+			double p = 1.0/Math.sqrt(branchLengths[nodeNr]);
+			double len = b1 + b2 + p;
+			position[nodeNr][0] = (position[child1][0] * b1 + position[child2][0] * b2 + position[parent][0] * p) / len;
+			position[nodeNr][1] = (position[child1][1] * b1 + position[child2][1] * b2 + position[parent][1] * p) / len;
+
+			//position[nodeNr][0] = (position[child1][0] * branchLengths[child1] + position[child2][0] * branchLengths[child2] + position[parent][0] * branchLengths[nodeNr]) / sumLengths[nodeNr];
+			//position[nodeNr][1] = (position[child1][1] * branchLengths[child1] + position[child2][1] * branchLengths[child2] + position[parent][1] * branchLengths[nodeNr]) / sumLengths[nodeNr];
 		} else {
-			position[nodeNr][0] = (position[child1][0] + position[child2][0] + position[parent][0]) / 3.0;
-			position[nodeNr][1] = (position[child1][1] + position[child2][1] + position[parent][1]) / 3.0;
+			double b1 = 1.0/Math.sqrt(branchLengths[child1]);
+			double b2 = 1.0/Math.sqrt(branchLengths[child2]);
+			double p = 1.0/Math.sqrt(branchLengths[nodeNr]);
+			double len = b1 + b2 + p;
+			b1 /= len;
+			b2 /= len;
+			p /= len;
+			double w = (1.0 - b1 * parentweight[child1] - b2 * parentweight[child2]);
+			p /= w;
+			position[nodeNr][0] += position[parent][0] * p;
+			position[nodeNr][1] += position[parent][1] * p;
+
 		}
 
 		if (MAX_ITER <= 0) {return;}
