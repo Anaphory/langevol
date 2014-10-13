@@ -33,15 +33,15 @@ public class SphereTesselation extends BEASTObject {
 		double phi = Math.atan(0.5) * 180 / Math.PI;
 		for (int i = -180; i < 180; i+=72) {
 			// to the north pole
-			Triangle t = new Triangle(90, i + 36, phi, i, phi, i + 72);
+			Triangle t = new Triangle(new Vertex(90, i + 36), new Vertex(phi, i), new Vertex(phi, i + 72));
 			triangles.add(t);
 			// to the south pole
-			t = new Triangle(-90,i + 72, -phi, i + 36, -phi, i + 108);
+			t = new Triangle(new Vertex(-90,i + 72), new Vertex(-phi, i + 36), new Vertex(-phi, i + 108));
 			triangles.add(t);
 			// on the equator
-			t = new Triangle(phi, i + 72, -phi, i + 36, -phi, i + 108);
+			t = new Triangle(new Vertex(phi, i + 72), new Vertex(-phi, i + 36), new Vertex(-phi, i + 108));
 			triangles.add(t);
-			t = new Triangle(-phi, i + 36, phi, i, phi, i + 72.0);
+			t = new Triangle(new Vertex(-phi, i + 36), new Vertex(phi, i), new Vertex(phi, i + 72.0));
 			triangles.add(t);
 		}
 		for (int i = 0; i < depthInput.get(); i++) {
@@ -85,7 +85,7 @@ public class SphereTesselation extends BEASTObject {
 	public static void main(String[] args) throws Exception {
 		JFrame frame = new JFrame();
 		final SphereTesselation tessel = new SphereTesselation();
-		tessel.initByName("depth", 5, "bbox", "10 110 45 160");
+		tessel.initByName("depth", 5, "bbox", "10 112 40 154");
 		final BufferedImage image = ImageIO.read(new File("World98b.png"));
 		JPanel panel = new JPanel() {
 			private static final long serialVersionUID = 1L;
@@ -95,16 +95,28 @@ public class SphereTesselation extends BEASTObject {
 				w = getWidth()/2;
 				g.setColor(Color.white);
 				g.fillRect(0, 0, getWidth(), getHeight());
-				g.drawImage(image, 0, 0, getWidth(), getHeight(), 0, 0, image.getWidth(), image.getHeight(), null);
-				double w = getWidth()/360.0;
-				double h = getHeight()/180.0;
+//				g.drawImage(image, 0, 0, getWidth(), getHeight(), 0, 0, image.getWidth(), image.getHeight(), null);
+//				double w = getWidth()/360.0;
+//				double h = getHeight()/180.0;
+				double w = getWidth()/(tessel.maxLong - tessel.minLong);
+				double h = getHeight()/(tessel.maxLat - tessel.minLat);
+				g.drawImage(image, 0, 0, getWidth(), getHeight(), 
+						(int)(image.getWidth() * (180+tessel.minLong) / 360.0), 
+						(int)(image.getHeight() * (90+tessel.minLat) / 180.0), 
+						(int)(image.getWidth() * (180+tessel.maxLong) / 360.0),
+						(int)(image.getHeight() * (90+tessel.maxLat) / 180.0), null);
+				
+				
 				g.setColor(Color.red);
 				g.drawRect((int)((tessel.minLong + 180) * w), (int)((tessel.minLat + 90) * h), (int)((tessel.maxLong -tessel.minLong) * w), (int)((tessel.maxLat - tessel.minLat) * h));
 				g.setColor(Color.blue);
 				for (Triangle t : tessel.triangles) {
-					drawLine(g, (int)((t.long1 + 180) * w), (int)((t.lat1 + 90) * h), (int)((t.long2 + 180) * w), (int)((t.lat2 + 90) * h));
-					drawLine(g, (int)((t.long1 + 180) * w), (int)((t.lat1 + 90) * h), (int)((t.long3 + 180) * w), (int)((t.lat3 + 90) * h));
-					drawLine(g, (int)((t.long2 + 180) * w), (int)((t.lat2 + 90) * h), (int)((t.long3 + 180) * w), (int)((t.lat3 + 90) * h));
+//					drawLine(g, (int)((t.long1 + 180) * w), (int)((t.lat1 + 90) * h), (int)((t.long2 + 180) * w), (int)((t.lat2 + 90) * h));
+//					drawLine(g, (int)((t.long1 + 180) * w), (int)((t.lat1 + 90) * h), (int)((t.long3 + 180) * w), (int)((t.lat3 + 90) * h));
+//					drawLine(g, (int)((t.long2 + 180) * w), (int)((t.lat2 + 90) * h), (int)((t.long3 + 180) * w), (int)((t.lat3 + 90) * h));
+					drawLine(g, (int)((t.v1.long1 - tessel.minLong) * w), (int)((t.v1.lat1 - tessel.minLat) * h), (int)((t.v2.long1 - tessel.minLong) * w), (int)((t.v2.lat1 - tessel.minLat) * h));
+					drawLine(g, (int)((t.v1.long1 - tessel.minLong) * w), (int)((t.v1.lat1 - tessel.minLat) * h), (int)((t.v3.long1 - tessel.minLong) * w), (int)((t.v3.lat1 - tessel.minLat) * h));
+					drawLine(g, (int)((t.v2.long1 - tessel.minLong) * w), (int)((t.v2.lat1 - tessel.minLat) * h), (int)((t.v3.long1 - tessel.minLong) * w), (int)((t.v3.lat1 - tessel.minLat) * h));
 				}
 			}
 
