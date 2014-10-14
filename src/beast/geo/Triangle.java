@@ -1,38 +1,26 @@
 package beast.geo;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import beast.continuous.SphericalDiffusionModel;
 
 
 /** latitudes in -90,90 longitudes in -180,180 **/
-public class Triangle {
-	Vertex v1, v2, v3;
-//	double lat1, long1;
-//	double lat2, long2;
-//	double lat3, long3;
-//	double[] cart1;
-//	double[] cart2;
-//	double[] cart3;
-	Triangle [] neightbours;
+public class Triangle extends GraphNode {
 	
-//	Triangle(double lat1, double long1, double lat2, double long2, double lat3, double long3) {
-//		this.lat1 = lat1;
-//		this.long1 = long1;
-//		this.lat2 = lat2;
-//		this.long2 = long2;
-//		this.lat3 = lat3;
-//		this.long3 = long3;
-//		
-//		cart1 = SphericalDiffusionModel.spherical2Cartesian(lat1, long1);
-//		cart2 = SphericalDiffusionModel.spherical2Cartesian(lat2, long2);
-//		cart3 = SphericalDiffusionModel.spherical2Cartesian(lat3, long3);
-//	}
+	Vertex v1, v2, v3;
 
 	Triangle(Vertex v1, Vertex v2, Vertex v3) {
 		this.v1 = v1;
 		this.v2 = v2;
 		this.v3 = v3;
+		id = -1;
+		v1.adjacentTraingles.add(this);
+		v2.adjacentTraingles.add(this);
+		v3.adjacentTraingles.add(this);
 	}
 
 	/** return centre of triangle in latitude/longitude **/
@@ -72,14 +60,14 @@ public class Triangle {
 		return new Vertex(center[0], center[1]);
 	}
 	
-	public void split(List<Triangle> newTriangles) {
+	public void split(List<GraphNode> newTriangles) {
 		Vertex pos12 = getHalfway(3);
 		Vertex pos13 = getHalfway(2);
 		Vertex pos23 = getHalfway(1);
 		Triangle t;
 		t = new Triangle(v1, pos12, pos13);
 		newTriangles.add(t);
-		t = new Triangle(v2, pos13, pos23);
+		t = new Triangle(v2, pos12, pos23);
 		newTriangles.add(t);
 		t = new Triangle(v3, pos13, pos23);
 		newTriangles.add(t);
@@ -107,5 +95,55 @@ public class Triangle {
 			return true;
 		}
 		return false;
+	}
+	
+	void calcNeighbours() {
+		Set<Triangle> neighbourset = new HashSet<Triangle>();
+		
+		Set<Triangle> s = new HashSet<Triangle>();
+		s.addAll(v1.adjacentTraingles);
+		s.retainAll(v2.adjacentTraingles);
+		neighbourset.addAll(s);
+
+		s.clear();
+		s.addAll(v2.adjacentTraingles);
+		s.retainAll(v3.adjacentTraingles);
+		neighbourset.addAll(s);
+		
+		s.clear();
+		s.addAll(v3.adjacentTraingles);
+		s.retainAll(v1.adjacentTraingles);
+		neighbourset.addAll(s);
+
+		neighbourset.remove(this);
+		neighbours = neighbourset.toArray(new Triangle[]{});
+		
+		// remove triangles outside bounding box
+		// these can be identified since they have id = -1
+		boolean b = false;
+		for (int i = 0; i < neighbours.length; i++) {
+			if (neighbours[i].id < 0) {
+				neighbourset.remove(neighbours[i]);
+				b = true;
+			}
+		}
+		if (b) {
+			neighbours = neighbourset.toArray(new Triangle[]{});
+		}
+		
+		distance = new double[neighbours.length];
+		Arrays.fill(distance, 1.0);
+	}
+
+	
+	public void clear() {
+		v1.adjacentTraingles = null;
+		v2.adjacentTraingles = null;
+		v3.adjacentTraingles = null;
+	}
+	
+	@Override
+	public String toString() {
+		return id + "";//"<" + v1.toString() + ", " + v2.toString() + ", " + v3.toString() +">";
 	}
 }
