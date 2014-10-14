@@ -18,9 +18,9 @@ public class Triangle extends GraphNode {
 		this.v2 = v2;
 		this.v3 = v3;
 		id = -1;
-		v1.adjacentTraingles.add(this);
-		v2.adjacentTraingles.add(this);
-		v3.adjacentTraingles.add(this);
+		v1.adjacentGNodes.add(this);
+		v2.adjacentGNodes.add(this);
+		v3.adjacentGNodes.add(this);
 	}
 
 	/** return centre of triangle in latitude/longitude **/
@@ -33,37 +33,11 @@ public class Triangle extends GraphNode {
 		double [] center = SphericalDiffusionModel.cartesian2Sperical(mean);
 		return center;
 	}
-
-	/** return halfway point between two points of the triangle in latitude/longitude 
-	 * @param leaveout: identify which corner (1,2,3) to leave out
-	 * **/
-	public Vertex getHalfway(int leaveout) {
-		double [] mean = new double[3];
-		double [] c1;
-		double [] c2;
-		switch(leaveout) {
-		case 1:
-				c1 = v2.cart; c2 = v3.cart; break;
-		case 2:
-				c1 = v1.cart; c2 = v3.cart; break;
-		case 3:
-				c1 = v1.cart; c2 = v2.cart; break;
-		default:
-				throw new RuntimeException("leaveout should be one of 1, 2, 3, not " + leaveout);
-		}
-		
-		for (int i = 0; i < 3; i++) {
-			mean[i] = (c1[i] + c2[i]) / 2.0;
-		}
-		normalise(mean);
-		double [] center = SphericalDiffusionModel.cartesian2Sperical(mean);
-		return new Vertex(center[0], center[1]);
-	}
 	
 	public void split(List<GraphNode> newTriangles) {
-		Vertex pos12 = getHalfway(3);
-		Vertex pos13 = getHalfway(2);
-		Vertex pos23 = getHalfway(1);
+		Vertex pos12 = getHalfway(v1, v2);
+		Vertex pos13 = getHalfway(v1, v3);
+		Vertex pos23 = getHalfway(v2, v3);
 		Triangle t;
 		t = new Triangle(v1, pos12, pos13);
 		newTriangles.add(t);
@@ -75,44 +49,43 @@ public class Triangle extends GraphNode {
 		newTriangles.add(t);
 	}
 
-	private void normalise(double[] position) {
-		double len = Math.sqrt(position[0] * position[0] + position[1] * position[1] + position[2] * position[2]);
-		position[0] /= len;
-		position[1] /= len;
-		position[2] /= len;
-	}
 
 	/** assumes that the triangle is much smaller than the bounding box, that is the bounding box is not inside the triangle **/
 	public boolean hasPointsInside(double minLat, double minLong,
 			double maxLat, double maxLong) {
-		if (v1.lat1 >= minLat && v1.lat1 <= maxLat && v1.long1 >= minLong && v1.long1 <= maxLong) {
-			return true;
-		}
-		if (v2.lat1 >= minLat && v2.lat1 <= maxLat && v2.long1 >= minLong && v2.long1 <= maxLong) {
-			return true;
-		}
-		if (v3.lat1 >= minLat && v3.lat1 <= maxLat && v3.long1 >= minLong && v3.long1 <= maxLong) {
-			return true;
-		}
-		return false;
+		return
+				v1.hasLatLongInsideBBox(minLat, minLong, maxLat, maxLong) ||
+				v2.hasLatLongInsideBBox(minLat, minLong, maxLat, maxLong) ||
+				v3.hasLatLongInsideBBox(minLat, minLong, maxLat, maxLong);
+//		
+//		if (v1.lat1 >= minLat && v1.lat1 <= maxLat && v1.long1 >= minLong && v1.long1 <= maxLong) {
+//			return true;
+//		}
+//		if (v2.lat1 >= minLat && v2.lat1 <= maxLat && v2.long1 >= minLong && v2.long1 <= maxLong) {
+//			return true;
+//		}
+//		if (v3.lat1 >= minLat && v3.lat1 <= maxLat && v3.long1 >= minLong && v3.long1 <= maxLong) {
+//			return true;
+//		}
+//		return false;
 	}
 	
 	void calcNeighbours() {
-		Set<Triangle> neighbourset = new HashSet<Triangle>();
+		Set<GraphNode> neighbourset = new HashSet<GraphNode>();
 		
-		Set<Triangle> s = new HashSet<Triangle>();
-		s.addAll(v1.adjacentTraingles);
-		s.retainAll(v2.adjacentTraingles);
+		Set<GraphNode> s = new HashSet<GraphNode>();
+		s.addAll(v1.adjacentGNodes);
+		s.retainAll(v2.adjacentGNodes);
 		neighbourset.addAll(s);
 
 		s.clear();
-		s.addAll(v2.adjacentTraingles);
-		s.retainAll(v3.adjacentTraingles);
+		s.addAll(v2.adjacentGNodes);
+		s.retainAll(v3.adjacentGNodes);
 		neighbourset.addAll(s);
 		
 		s.clear();
-		s.addAll(v3.adjacentTraingles);
-		s.retainAll(v1.adjacentTraingles);
+		s.addAll(v3.adjacentGNodes);
+		s.retainAll(v1.adjacentGNodes);
 		neighbourset.addAll(s);
 
 		neighbourset.remove(this);
@@ -137,9 +110,9 @@ public class Triangle extends GraphNode {
 
 	
 	public void clear() {
-		v1.adjacentTraingles = null;
-		v2.adjacentTraingles = null;
-		v3.adjacentTraingles = null;
+		v1.adjacentGNodes = null;
+		v2.adjacentGNodes = null;
+		v3.adjacentGNodes = null;
 	}
 	
 	@Override

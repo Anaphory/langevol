@@ -85,33 +85,45 @@ public class SphereTesselation extends Graph {
 
 		
 		System.err.println("#triangels = " + nodes.size() + " before filtering");
-		// filtering out traingle outside bounding box (if any)
-		if (bboxInput.get() != null) {
-			String str = bboxInput.get().trim();
-			String [] strs = str.split("\\s+");
-			if (strs.length != 4) {
-				throw new RuntimeException("bbox input must contain 4 numbers");
-			}
-			minLat = Double.parseDouble(strs[0]);
-			minLong = Double.parseDouble(strs[1]);
-			maxLat = Double.parseDouble(strs[2]);
-			maxLong = Double.parseDouble(strs[3]);
-			if (minLat >= maxLat) {
-				throw new RuntimeException("bbox input first latitude must be smaller than second latitude");
-			}
-			if (minLong >= maxLong) {
-				throw new RuntimeException("bbox input first longitude must be smaller than second longitude");
-			}
-			
-			List<GraphNode> filteredTriangles = new ArrayList<>();
-			for (GraphNode t : nodes) {
-				if (((Triangle)t).hasPointsInside(minLat, minLong, maxLat, maxLong)) {
-					filteredTriangles.add(t);
-				}
-			}
-			nodes = filteredTriangles;
+		filterNodesInBoundingBox();
+		
+		List<Vertex> vertices = amalgamateNeighbors();
+
+		// renumber remaining triangles
+		renumber();
+
+		// set up adjacency graph -- requires vertices to have adjacentTraingles to be set up
+		for (GraphNode t : nodes) {
+			((Triangle)t).calcNeighbours();
 		}
 		
+		// save memory
+		for (Vertex v : vertices) {
+			v.adjacentGNodes = null;
+		}
+
+		
+		// log some stats
+		int k = 0;
+		for (GraphNode t : nodes) {
+			if (t.neighbours.length != 3) {
+				k++;
+			}
+		}
+		System.err.println("#triangels = " + nodes.size());	
+		System.err.println("#triangels with less than 3 neighbors = " + k);	
+		
+	}
+
+	/** ensure graph nodes are numbered from 0 to #graphnodes-1 **/
+	void renumber() {
+		int i = 0;
+		for (GraphNode t : nodes) {
+			t.id = i++;
+		}
+	}
+
+	List<Vertex> amalgamateNeighbors() {
 		// collect vertices
 		List<Vertex> vertices = new ArrayList<Vertex>();
 		for (GraphNode t : nodes) {
@@ -151,40 +163,50 @@ public class SphereTesselation extends Graph {
 			Vertex v1 = vertices.get(i);
 			Vertex v2 = vertices.get(i+1);
 			if (comparator.compare(v1, v2) == 0) { 
-				v1.adjacentTraingles.addAll(v2.adjacentTraingles);
-				v2.adjacentTraingles.addAll(v1.adjacentTraingles);
+				v1.adjacentGNodes.addAll(v2.adjacentGNodes);
+				v2.adjacentGNodes.addAll(v1.adjacentGNodes);
 			}
 		}
-		
-		// renumber remaining triangles
-		int i = 0;
-		for (GraphNode t : nodes) {
-			t.id = i++;
-		}
-
-		// set up adjacency graph -- requires vertices to have adjacentTraingles to be set up
-		for (GraphNode t : nodes) {
-			((Triangle)t).calcNeighbours();
-		}
-		
-		// save memory
-		for (Vertex v : vertices) {
-			v.adjacentTraingles = null;
-		}
-
-		
-		// log some stats
-		int k = 0;
-		for (GraphNode t : nodes) {
-			if (t.neighbours.length != 3) {
-				k++;
-			}
-		}
-		System.err.println("#triangels = " + nodes.size());	
-		System.err.println("#triangels with less than 3 neighbors = " + k);	
-		
+		return vertices;
 	}
 
+
+	void filterNodesInBoundingBox() {
+		// filtering out traingle outside bounding box (if any)
+		if (bboxInput.get() != null) {
+			parseBBox();
+			
+			List<GraphNode> filteredTriangles = new ArrayList<>();
+			for (GraphNode t : nodes) {
+				if (((Triangle)t).hasPointsInside(minLat, minLong, maxLat, maxLong)) {
+					filteredTriangles.add(t);
+				}
+			}
+			nodes = filteredTriangles;
+		}
+	}
+
+
+	void parseBBox() {
+		if (bboxInput.get() == null) {
+			return;
+		}
+		String str = bboxInput.get().trim();
+		String [] strs = str.split("\\s+");
+		if (strs.length != 4) {
+			throw new RuntimeException("bbox input must contain 4 numbers");
+		}
+		minLat = Double.parseDouble(strs[0]);
+		minLong = Double.parseDouble(strs[1]);
+		maxLat = Double.parseDouble(strs[2]);
+		maxLong = Double.parseDouble(strs[3]);
+		if (minLat >= maxLat) {
+			throw new RuntimeException("bbox input first latitude must be smaller than second latitude");
+		}
+		if (minLong >= maxLong) {
+			throw new RuntimeException("bbox input first longitude must be smaller than second longitude");
+		}
+	}
 
 	public static void main(String[] args) throws Exception {
 		JFrame frame = new JFrame();
