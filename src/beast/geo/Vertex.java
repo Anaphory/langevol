@@ -9,20 +9,29 @@ import java.util.Set;
 import beast.continuous.SphericalDiffusionModel;
 
 public class Vertex {
+	static NumberFormat formatter = new DecimalFormat("#0.00"); 
+
 	double lat1; 
 	double long1;
 	double [] cart;
 	
-	static NumberFormat formatter = new DecimalFormat("#0.00"); 
+	Set<GraphNode> adjacentGNodes;
 	
 	Vertex(double lat1, double long1) {
 		this.lat1 = lat1;
 		this.long1 = long1;
-		adjacentTraingles = new HashSet<Triangle>();
+		adjacentGNodes = new HashSet<GraphNode>();
 		cart = SphericalDiffusionModel.spherical2Cartesian(lat1, long1);
 	}
 	
-	Set<Triangle> adjacentTraingles;
+	
+	boolean hasLatLongInsideBBox(double minLat, double minLong,
+			double maxLat, double maxLong) {
+		if (lat1 >= minLat && lat1 <= maxLat && long1 >= minLong && long1 <= maxLong) {
+			return true;
+		}
+		return false;
+	}
 
 	@Override
 	public String toString() {

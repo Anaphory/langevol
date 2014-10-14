@@ -1,6 +1,8 @@
 package beast.geo;
 
-public class GraphNode {
+import beast.continuous.SphericalDiffusionModel;
+
+abstract public class GraphNode {
 	int id;
 
 	/** adjacent triangles **/
@@ -9,5 +11,34 @@ public class GraphNode {
 	/** distance to neighbor **/
 	double [] distance;
 
-	double [] getCenter() {return null;}
+	/** return center of node in [latitude, longitude] **/
+	abstract double [] getCenter();
+	
+	/** ensure vector of Cartesian coordinates has length of 1 **/ 
+	static void normalise(double[] position) {
+		double len = Math.sqrt(position[0] * position[0] + position[1] * position[1] + position[2] * position[2]);
+		position[0] /= len;
+		position[1] /= len;
+		position[2] /= len;
+	}
+	
+	
+	/** return halfway point between two points of the triangle in latitude/longitude 
+	 * @param leaveout: identify which corner (1,2,3) to leave out
+	 * **/
+	public static Vertex getHalfway(Vertex c1, Vertex c2) {
+		double [] mean = new double[3];
+		
+		for (int i = 0; i < 3; i++) {
+			mean[i] = (c1.cart[i] + c2.cart[i]) / 2.0;
+		}
+		normalise(mean);
+		double [] center = SphericalDiffusionModel.cartesian2Sperical(mean);
+		return new Vertex(center[0], center[1]);
+	}
+
+	abstract public boolean hasPointsInside(double minLat, double minLong,
+			double maxLat, double maxLong);
+
+
 }
