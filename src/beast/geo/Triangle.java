@@ -114,9 +114,12 @@ public class Triangle extends GraphNode {
 		v2.adjacentGNodes = null;
 		v3.adjacentGNodes = null;
 	}
-	
+
 	@Override
-	public String toString() {
-		return id + "";//"<" + v1.toString() + ", " + v2.toString() + ", " + v3.toString() +">";
+	public void addVertices(Set<Vertex> vertices) {
+		vertices.add(v1);
+		vertices.add(v2);
+		vertices.add(v3);
 	}
+	
 }

@@ -1,5 +1,7 @@
 package beast.geo;
 
+import java.util.Set;
+
 import beast.continuous.SphericalDiffusionModel;
 
 abstract public class GraphNode {
@@ -41,4 +43,12 @@ abstract public class GraphNode {
 			double maxLat, double maxLong);
 
 
+	abstract void calcNeighbours();
+
+	@Override
+	public String toString() {
+		return id + "";//"<" + v1.toString() + ", " + v2.toString() + ", " + v3.toString() +">";
+	}
+
+	abstract public void addVertices(Set<Vertex> vertices);
 }
