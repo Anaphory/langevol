@@ -87,7 +87,16 @@ public class SphereTesselation extends Graph {
 		System.err.println("#triangels = " + nodes.size() + " before filtering");
 		filterNodesInBoundingBox();
 		
-		List<Vertex> vertices = amalgamateNeighbors();
+		
+		// collect vertices
+		List<Vertex> vertices = new ArrayList<Vertex>();
+		for (GraphNode t : nodes) {
+			vertices.add(((Triangle)t).v1);
+			vertices.add(((Triangle)t).v2);
+			vertices.add(((Triangle)t).v3);
+		}
+
+		amalgamateNeighborsInVertices(vertices);
 
 		// renumber remaining triangles
 		renumber();
@@ -123,14 +132,7 @@ public class SphereTesselation extends Graph {
 		}
 	}
 
-	List<Vertex> amalgamateNeighbors() {
-		// collect vertices
-		List<Vertex> vertices = new ArrayList<Vertex>();
-		for (GraphNode t : nodes) {
-			vertices.add(((Triangle)t).v1);
-			vertices.add(((Triangle)t).v2);
-			vertices.add(((Triangle)t).v3);
-		}
+	void amalgamateNeighborsInVertices(List<Vertex> vertices) {
 		
 		// sort vertices by latitude/longitude in order to find duplicates
 		class VertexComparator implements Comparator<Vertex> {
@@ -167,7 +169,6 @@ public class SphereTesselation extends Graph {
 				v2.adjacentGNodes.addAll(v1.adjacentGNodes);
 			}
 		}
-		return vertices;
 	}
 
 
@@ -178,7 +179,7 @@ public class SphereTesselation extends Graph {
 			
 			List<GraphNode> filteredTriangles = new ArrayList<>();
 			for (GraphNode t : nodes) {
-				if (((Triangle)t).hasPointsInside(minLat, minLong, maxLat, maxLong)) {
+				if (t.hasPointsInside(minLat, minLong, maxLat, maxLong)) {
 					filteredTriangles.add(t);
 				}
 			}

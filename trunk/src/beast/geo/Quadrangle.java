@@ -17,8 +17,8 @@ public class Quadrangle extends GraphNode {
 		this.v3 = v3;
 		this.v4 = v4;
 		id = -1;
-		v1.adjacentGNodes.add(this);
 		v2.adjacentGNodes.add(this);
+		v1.adjacentGNodes.add(this);
 		v3.adjacentGNodes.add(this);
 		v4.adjacentGNodes.add(this);
 	}
@@ -87,7 +87,7 @@ public class Quadrangle extends GraphNode {
 			}
 		}
 		if (b) {
-			neighbours = neighbourset.toArray(new Triangle[]{});
+			neighbours = neighbourset.toArray(new GraphNode[]{});
 		}
 		
 		distance = new double[neighbours.length];
@@ -95,10 +95,19 @@ public class Quadrangle extends GraphNode {
 	}
 
 
-	private void addNeighbors(Vertex v12, Vertex v22, Set<GraphNode> s) {
+	private void addNeighbors(Vertex v2, Vertex v3, Set<GraphNode> s) {
 		s.clear();
 		s.addAll(v2.adjacentGNodes);
 		s.retainAll(v3.adjacentGNodes);
+	}
+
+
+	@Override
+	public void addVertices(Set<Vertex> vertices) {
+		vertices.add(v1);
+		vertices.add(v2);
+		vertices.add(v3);
+		vertices.add(v4);
 	}
 
 }
