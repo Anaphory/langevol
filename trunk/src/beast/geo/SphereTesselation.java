@@ -103,7 +103,7 @@ public class SphereTesselation extends Graph {
 
 		// set up adjacency graph -- requires vertices to have adjacentTraingles to be set up
 		for (GraphNode t : nodes) {
-			((Triangle)t).calcNeighbours();
+			((Triangle)t).calcNeighbours(allNeighborsInput.get());
 		}
 		
 		// save memory
@@ -213,7 +213,7 @@ public class SphereTesselation extends Graph {
 		JFrame frame = new JFrame();
 		final SphereTesselation tessel = new SphereTesselation();
 //		tessel.initByName("depth", 8, "bbox", "10 112 40 154");
-		tessel.initByName("depth",4);
+		tessel.initByName("depth",4, "allNeighbors", true);
 		
 		final List<GraphNode> path1 = new ArrayList<GraphNode>();
 		final List<GraphNode> path2 = new ArrayList<GraphNode>();
@@ -263,11 +263,11 @@ public class SphereTesselation extends Graph {
 					drawLine(g, (int)((t.v2.long1 - tessel.minLong) * w), (int)((t.v2.lat1 - tessel.minLat) * h), (int)((t.v3.long1 - tessel.minLong) * w), (int)((t.v3.lat1 - tessel.minLat) * h));
 					double [] center = t.getCenter();
 					//g.drawString(t.neightbours.length +"", (int)((center[1] - tessel.minLong) * w), (int)((center[0] - tessel.minLat) * h));
-					g.drawString(d[gn.id] +"", (int)((center[1] - tessel.minLong) * w), (int)((center[0] - tessel.minLat) * h));
+					//g.drawString(""+Vertex.formatter.format(d[gn.id]), (int)((center[1] - tessel.minLong) * w), (int)((center[0] - tessel.minLat) * h));
 				}
-//				drawPath(g, Color.red, path1, w, h);
-//				drawPath(g, Color.black, path2, w, h);
-//				drawPath(g, Color.green, path3, w, h);
+				drawPath(g, Color.red, path1, w, h);
+				drawPath(g, Color.black, path2, w, h);
+				drawPath(g, Color.green, path3, w, h);
 			}
 
 			private void drawPath(Graphics g, Color color, List<GraphNode> path1, double w, double h) {

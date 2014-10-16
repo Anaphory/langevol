@@ -70,22 +70,26 @@ public class Triangle extends GraphNode {
 //		return false;
 	}
 	
-	void calcNeighbours() {
+	@Override
+	void calcNeighbours(boolean allNeighborsInput) {
 		Set<GraphNode> neighbourset = new HashSet<GraphNode>();
 		
 		Set<GraphNode> s = new HashSet<GraphNode>();
 		s.addAll(v1.adjacentGNodes);
-		s.retainAll(v2.adjacentGNodes);
+		if (!allNeighborsInput)
+			s.retainAll(v2.adjacentGNodes);
 		neighbourset.addAll(s);
 
 		s.clear();
 		s.addAll(v2.adjacentGNodes);
-		s.retainAll(v3.adjacentGNodes);
+		if (!allNeighborsInput)
+			s.retainAll(v3.adjacentGNodes);
 		neighbourset.addAll(s);
 		
 		s.clear();
 		s.addAll(v3.adjacentGNodes);
-		s.retainAll(v1.adjacentGNodes);
+		if (!allNeighborsInput)
+			s.retainAll(v1.adjacentGNodes);
 		neighbourset.addAll(s);
 
 		neighbourset.remove(this);
@@ -104,8 +108,7 @@ public class Triangle extends GraphNode {
 			neighbours = neighbourset.toArray(new Triangle[]{});
 		}
 		
-		distance = new double[neighbours.length];
-		Arrays.fill(distance, 1.0);
+		setUpDistances();
 	}
 
 	

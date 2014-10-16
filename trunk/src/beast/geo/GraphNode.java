@@ -3,6 +3,7 @@ package beast.geo;
 import java.util.Set;
 
 import beast.continuous.SphericalDiffusionModel;
+import beast.evolution.alignment.distance.GreatCircleDistance;
 
 abstract public class GraphNode {
 	int id;
@@ -11,7 +12,7 @@ abstract public class GraphNode {
 	GraphNode [] neighbours;
 
 	/** distance to neighbor **/
-	double [] distance;
+	private double [] distance;
 
 	/** return center of node in [latitude, longitude] **/
 	abstract double [] getCenter();
@@ -43,7 +44,7 @@ abstract public class GraphNode {
 			double maxLat, double maxLong);
 
 
-	abstract void calcNeighbours();
+	abstract void calcNeighbours(boolean allNeighborsInput);
 
 	@Override
 	public String toString() {
@@ -51,4 +52,24 @@ abstract public class GraphNode {
 	}
 
 	abstract public void addVertices(Set<Vertex> vertices);
+	
+	void setUpDistances() {
+		distance = new double[neighbours.length];
+		double [] center = getCenter();
+		for (int i = 0; i < neighbours.length; i++) {
+			double [] nbcenter = neighbours[i].getCenter();
+			distance[i] = GreatCircleDistance.pairwiseDistance(center, nbcenter);
+		}
+	}
+
+	public void scaleDistance(double scale) {
+		for (int i = 0; i < distance.length; i++) {
+			distance[i] *= scale;
+		}
+	}
+	
+	public double getDistance(int i) {
+		return distance[i];
+	}
+
 }

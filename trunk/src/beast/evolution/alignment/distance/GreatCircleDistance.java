@@ -26,15 +26,18 @@ public class GreatCircleDistance extends BEASTObject implements Distance {
 	public double pairwiseDistance(int taxon1, int taxon2) {
 		double [] loc1 = trait.getTrait(tree, tree.getNode(taxon1));
 		double [] loc2 = trait.getTrait(tree, tree.getNode(taxon2));
-		
-		double latitude1 = loc1[0];
-		double longitude1 = loc1[1];
+		return pairwiseDistance(loc1, loc2);
+	}
+	
+	public static double pairwiseDistance(double [] start, double [] end) {
+		double latitude1 = start[0];
+		double longitude1 = start[1];
 		double theta1 = (latitude1)*Math.PI/180.0;
 		if (longitude1 < 0) longitude1 += 360;
 		double phi1 = longitude1 * Math.PI/180;
 
-		double latitude2 = loc2[0];
-		double longitude2 = loc2[1];
+		double latitude2 = end[0];
+		double longitude2 = end[1];
 		double theta2 = (latitude2)*Math.PI/180.0;
 		if (longitude2 < 0) longitude2 += 360;
 		double phi2 = longitude2 * Math.PI/180;
