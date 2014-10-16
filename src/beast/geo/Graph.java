@@ -18,9 +18,13 @@ import javax.imageio.ImageIO;
 
 import beast.core.BEASTObject;
 import beast.core.Description;
+import beast.core.Input;
 
 @Description("Graph connecting nodes on the earth's surface")
 public class Graph extends BEASTObject {
+	public Input<Boolean> allNeighborsInput = new Input<Boolean>("allNeighbors", "consider all adjacent nodes are neighbours, not just the ones that have two vertices in common",  false);
+	
+	
 	List<GraphNode> nodes;
 	
 	DistanceMatrix distances;
@@ -186,6 +190,11 @@ public class Graph extends BEASTObject {
 						bm[k++] = 0;
 					}
 				}
+			}
+			for (double [] center : centers) {
+				int iLat = (int)((center[0] - minLat + deltaLat/2) / deltaLat);
+				int iLong = (int)((center[1] - minLong + deltaLong/2) / deltaLong);
+				bm[iLat * longSteps + iLong] = 0;
 			}
 			BufferedImage bMap = new BufferedImage(longSteps, latSteps, BufferedImage.TYPE_INT_RGB);
 			bMap.setRGB(0, 0, longSteps, latSteps, bm, 0, longSteps);
@@ -367,7 +376,7 @@ public class Graph extends BEASTObject {
 			double dist = dist1[gnode.id];
 			for (int i = 0; i < gnode.neighbours.length; i++) {
 				GraphNode t = gnode.neighbours[i];
-				double d = gnode.distance[i];
+				double d = gnode.getDistance(i);
 				if (!done1[t.id] || dist + d < dist1[t.id]) {
 					dist1[t.id] = dist + d;
 					prev1[t.id] = gnode.id;
@@ -399,6 +408,7 @@ public class Graph extends BEASTObject {
 	public DistanceMatrix distances(int threads) {
 		double [][] distances = new double[nodes.size()][];
 		final CountDownLatch m_nCountDown = new CountDownLatch(threads);
+		System.err.println("Start distances()");
 
 		/** calculates distance for nodes from to too **/
 		class DistanceRunner implements Runnable {
@@ -419,7 +429,7 @@ public class Graph extends BEASTObject {
 					if (i < distances.length) {
 						distances[i] = distances(nodes.get(i));
 					}
-					if (i % 10 == 9) {
+					if (i % 10 == 0) {
 						long end = System.currentTimeMillis();
 						System.err.println("Thread " + (from/(too-from)) + "  Done " + (i - from + 1) + " to go " + (too - i) + " " + (end-start)/1000 + " sec " + ((too-i) * (end-start)/(1000 * (i-from+1))) +" sec to go");
 					}
@@ -456,7 +466,7 @@ public class Graph extends BEASTObject {
 		double dist = dist1[gnode.id];
 		for (int i = 0; i < gnode.neighbours.length; i++) {
 			GraphNode t = gnode.neighbours[i];
-			double d = gnode.distance[i];
+			double d = gnode.getDistance(i);
 			if (!done1[t.id] || dist + d < dist1[t.id]) {
 				dist1[t.id] = dist + d;
 				prev1[t.id] = gnode.id;
@@ -476,7 +486,7 @@ public class Graph extends BEASTObject {
 		double dist = dist1[gnode.id];
 		for (int i = 0; i < gnode.neighbours.length; i++) {
 			GraphNode t = gnode.neighbours[i];
-			double d = gnode.distance[i];
+			double d = gnode.getDistance(i);
 			if (!done1[t.id] || dist + d < dist1[t.id]) {
 				dist1[t.id] = dist + d;
 				prev1[t.id] = gnode.id;

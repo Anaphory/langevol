@@ -1,6 +1,6 @@
 package beast.geo;
 
-import java.util.Arrays;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -60,18 +60,18 @@ public class Quadrangle extends GraphNode {
 				v4.hasLatLongInsideBBox(minLat, minLong, maxLat, maxLong);
 	}
 
-	
-	void calcNeighbours() {
+	@Override
+	void calcNeighbours(boolean allNeighbors) {
 		Set<GraphNode> neighbourset = new HashSet<GraphNode>();
 		
 		Set<GraphNode> s = new HashSet<GraphNode>();
-		addNeighbors(v1, v2, s);
+		addNeighbors(v1, v2, s, allNeighbors);
 		neighbourset.addAll(s);
-		addNeighbors(v2, v3, s);
+		addNeighbors(v2, v3, s, allNeighbors);
 		neighbourset.addAll(s);
-		addNeighbors(v3, v4, s);
+		addNeighbors(v3, v4, s, allNeighbors);
 		neighbourset.addAll(s);
-		addNeighbors(v4, v1, s);
+		addNeighbors(v4, v1, s, allNeighbors);
 		neighbourset.addAll(s);
 
 		neighbourset.remove(this);
@@ -89,16 +89,16 @@ public class Quadrangle extends GraphNode {
 		if (b) {
 			neighbours = neighbourset.toArray(new GraphNode[]{});
 		}
-		
-		distance = new double[neighbours.length];
-		Arrays.fill(distance, 1.0);
+		setUpDistances();
 	}
+		
 
 
-	private void addNeighbors(Vertex v2, Vertex v3, Set<GraphNode> s) {
+	private void addNeighbors(Vertex v2, Vertex v3, Set<GraphNode> s, boolean allNeighbors) {
 		s.clear();
 		s.addAll(v2.adjacentGNodes);
-		s.retainAll(v3.adjacentGNodes);
+		if (!allNeighbors)
+			s.retainAll(v3.adjacentGNodes);
 	}
 
 
