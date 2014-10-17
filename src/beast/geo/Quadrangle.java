@@ -34,7 +34,7 @@ public class Quadrangle extends GraphNode {
 
 
 	@Override
-	double[] getCenter() {
+	public double[] getCenter() {
 		double [] mean = new double[3];
 		for (int i = 0; i < 3; i++) {
 			mean[i] = (v1.cart[i] + v2.cart[i] + v3.cart[i] + v4.cart[i]) / 4.0;

@@ -27,8 +27,8 @@ public class SphereTesselation extends Graph {
 			+ " e.g. ");
 
 
-	double maxLat = 90, minLat = -90;
-	double maxLong= 180, minLong= -180;
+	public double maxLat = 90, minLat = -90;
+	public double maxLong= 180, minLong= -180;
 	
 	@Override
 	public void initAndValidate() throws Exception {
