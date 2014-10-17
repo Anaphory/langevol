@@ -6,7 +6,7 @@ import beast.continuous.SphericalDiffusionModel;
 import beast.evolution.alignment.distance.GreatCircleDistance;
 
 abstract public class GraphNode {
-	int id;
+	public int id;
 
 	/** adjacent triangles **/
 	GraphNode [] neighbours;
@@ -15,7 +15,7 @@ abstract public class GraphNode {
 	private double [] distance;
 
 	/** return center of node in [latitude, longitude] **/
-	abstract double [] getCenter();
+	abstract public double [] getCenter();
 	
 	/** ensure vector of Cartesian coordinates has length of 1 **/ 
 	static void normalise(double[] position) {

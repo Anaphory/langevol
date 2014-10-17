@@ -30,6 +30,10 @@ public class GreatCircleDistance extends BEASTObject implements Distance {
 	}
 	
 	public static double pairwiseDistance(double [] start, double [] end) {
+		if (start[0] == end[0] && start[1] == end[1]) {
+			return 0.0;
+		}
+		
 		double latitude1 = start[0];
 		double longitude1 = start[1];
 		double theta1 = (latitude1)*Math.PI/180.0;

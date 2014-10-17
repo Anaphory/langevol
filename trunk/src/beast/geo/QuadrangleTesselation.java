@@ -7,8 +7,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -182,26 +180,15 @@ public class QuadrangleTesselation extends SphereTesselation {
 	}
 	
 	
-	GraphNode getLowerLeftCorner() {
-		GraphNode llCorner = nodes.get(0);
-		double [] center = llCorner.getCenter();
-		for (GraphNode node : nodes) {
-			double [] ocenter = node.getCenter();
-			if (ocenter[0] > center[0] && ocenter[1]<center[1]) {
-				llCorner = node;
-				center = ocenter;
-			}
-		}
-		return llCorner;
-	}
-
-
 	public static void main(String[] args) throws Exception {
 		JFrame frame = new JFrame();
 		final QuadrangleTesselation tessel = new QuadrangleTesselation();
 		//tessel.initByName("depth", 8, "bbox", "10 112 40 154");
 		//tessel.initByName("depth", 100, "bbox", "5 120 47 154", "reddistance", "1.0", "allNeighbors", true);
-		tessel.initByName("depth", 75, "bbox", "5 120 47 154", "reddistance", "1.0", "allNeighbors", true, "removeWater", false);
+		tessel.initByName("depth", 15, "bbox", "5 120 47 154", "reddistance", "1.0", "allNeighbors", false, "removeWater", false);
+
+		final QuadrangleTesselation tessel2 = new QuadrangleTesselation();
+		tessel2.initByName("depth", 51, "bbox", "5 120 47 154", "reddistance", "1.0", "allNeighbors", true, "removeWater", true);
 		
 		final List<GraphNode> path1 = new ArrayList<GraphNode>();
 		final List<GraphNode> path2 = new ArrayList<GraphNode>();
@@ -235,6 +222,15 @@ public class QuadrangleTesselation extends SphereTesselation {
 		}
 		System.err.println(Arrays.toString(dist2));
 
+		final GraphNode t12 = tessel2.getLowerLeftCorner();//tessel.nodes.get(Randomizer.nextInt(n));
+		final double [] dist22 = new double[dist.length];
+		double [] center2 = t1.getCenter();
+		for (int i = 0; i < dist22.length; i++) {
+			GraphNode node = tessel2.nodes.get(i);
+			double [] ocenter = node.getCenter();
+			dist22[node.id] = GreatCircleDistance.pairwiseDistance(center2, ocenter);
+		}
+		System.err.println(Arrays.toString(dist22));
 		
 		
 //		DistanceMatrix distances = tessel.distances(6);
@@ -254,10 +250,26 @@ public class QuadrangleTesselation extends SphereTesselation {
 
 			
 			protected void paintComponent(java.awt.Graphics g) {
+				double w = 0, h = 0;
+				if (!scale) {
+					g.drawImage(image, 0, 0, getWidth(), getHeight(), 0, 0, image.getWidth(), image.getHeight(), null);
+					w = getWidth()/360.0;
+					h = getHeight()/180.0;
+				} else {
+					w = getWidth()/(tessel.maxLong - tessel.minLong);
+					h = getHeight()/(tessel.maxLat - tessel.minLat);
+					g.drawImage(image, 0, 0, getWidth(), getHeight(), 
+							(int)(image.getWidth() * (180+tessel.minLong) / 360.0), 
+							(int)(image.getHeight() * (90+tessel.minLat) / 180.0), 
+							(int)(image.getWidth() * (180+tessel.maxLong) / 360.0),
+							(int)(image.getHeight() * (90+tessel.maxLat) / 180.0), null);
+				}
 				if (max < 0) {			
-					for (double d : dist) {
+					for (double d : dist22) {
 						max = Math.max(max, d);
 					}
+					System.err.println("max distance = " + max);
+					max = 0;
 					for (double d : dist2) {
 						max = Math.max(max, d);
 					}
@@ -265,17 +277,17 @@ public class QuadrangleTesselation extends SphereTesselation {
 				}
 				
 				this.w = getWidth()/2;
-				g.setColor(Color.white);
-				g.fillRect(0, 0, getWidth(), getHeight());
+//				g.setColor(Color.white);
+//				g.fillRect(0, 0, getWidth(), getHeight());
 				
 				int h1 = getHeight();
 				int w1 = getWidth();
-				double w = getWidth()/(tessel.maxLong - tessel.minLong);
-				double h = getHeight()/(tessel.maxLat - tessel.minLat);
+				//double w = getWidth()/(tessel.maxLong - tessel.minLong);
+				//double h = getHeight()/(tessel.maxLat - tessel.minLat);
 
 				g.setColor(Color.blue);
 				double sumsse = 0.0;
-				double c = 1.0 / 1.06; 
+				double c = 0.75;//1.0 / 1.33; 
 				for (int i = 0; i < dist.length; i++) {
 					g.drawOval((int)(dist2[i]*w1/max)-1, h1-(int)(dist[i]*c*h1/max)-1, 3, 3);
 					double [] center = tessel.nodes.get(i).getCenter();
@@ -283,7 +295,7 @@ public class QuadrangleTesselation extends SphereTesselation {
 					
 					sumsse += Math.abs(dist[i]*c- dist2[i]);// * (dist[i]*c- dist2[i]);
 				}
-				System.err.println((sumsse/dist.length));
+				System.err.println(c + " " + (sumsse/dist.length));
 				
 				g.setColor(Color.black);
 				g.drawLine(0,h1,w1,0);
@@ -293,20 +305,6 @@ public class QuadrangleTesselation extends SphereTesselation {
 					g.drawLine(i*w1/k,0, i*w1/k,h1);
 				}
 				
-//				double w = 0, h = 0;
-//				if (!scale) {
-//					g.drawImage(image, 0, 0, getWidth(), getHeight(), 0, 0, image.getWidth(), image.getHeight(), null);
-//					w = getWidth()/360.0;
-//					h = getHeight()/180.0;
-//				} else {
-//					w = getWidth()/(tessel.maxLong - tessel.minLong);
-//					h = getHeight()/(tessel.maxLat - tessel.minLat);
-//					g.drawImage(image, 0, 0, getWidth(), getHeight(), 
-//							(int)(image.getWidth() * (180+tessel.minLong) / 360.0), 
-//							(int)(image.getHeight() * (90+tessel.minLat) / 180.0), 
-//							(int)(image.getWidth() * (180+tessel.maxLong) / 360.0),
-//							(int)(image.getHeight() * (90+tessel.maxLat) / 180.0), null);
-//				}
 //				
 //				
 //				g.setColor(Color.red);

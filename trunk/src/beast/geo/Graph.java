@@ -25,7 +25,7 @@ public class Graph extends BEASTObject {
 	public Input<Boolean> allNeighborsInput = new Input<Boolean>("allNeighbors", "consider all adjacent nodes are neighbours, not just the ones that have two vertices in common",  false);
 	
 	
-	List<GraphNode> nodes;
+	public List<GraphNode> nodes;
 	
 	DistanceMatrix distances;
 
@@ -518,5 +518,18 @@ public class Graph extends BEASTObject {
 		GraphNode endNode = latLongMap.getClosestNode(stop[0], stop[1]);
 		double distance = distances.distances[startNode.id][endNode.id];
 		return distance;
+	}
+
+	public GraphNode getLowerLeftCorner() {
+		GraphNode llCorner = nodes.get(0);
+		double [] center = llCorner.getCenter();
+		for (GraphNode node : nodes) {
+			double [] ocenter = node.getCenter();
+			if (ocenter[0] > center[0] && ocenter[1]<center[1]) {
+				llCorner = node;
+				center = ocenter;
+			}
+		}
+		return llCorner;
 	}
 }
