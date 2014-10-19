@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import javax.imageio.ImageIO;
-import javax.swing.JPanel;
 
 import beast.evolution.alignment.distance.GreatCircleDistance;
 import beast.util.Randomizer;
@@ -19,13 +18,16 @@ import beast.geo.GridTesselation;
 public class GridNeighborTest {
 
 	public static void main(String[] args) throws Exception {
-		test1(false);
-		test1(true);
+		test1(false, false, "/tmp/gc_vs_approximate_1.png");
+		//test1(true, false, "/tmp/gc_vs_approximate_all_1.png");
+		test1(false, true, "/tmp/gc_vs_approximate_gc.png");
+		test1(true, true, "/tmp/gc_vs_approximate_gc_all.png");
 	}
 	
-	public static void test1(boolean allNeighbors) throws Exception {
+	public static void test1(boolean allNeighbors, boolean useGreatCircle, String fileName) throws Exception {
 		final GridTesselation tessel = new GridTesselation();
-		tessel.initByName("depth", 51, "bbox", "5 120 47 154", "reddistance", "1.0", "allNeighbors", allNeighbors);
+		tessel.initByName("depth", 51, "bbox", "5 120 47 154", "reddistance", "1.0", 
+				"allNeighbors", allNeighbors, "useGreatCircle", useGreatCircle);
 		
 		int n = tessel.nodes.size();
 		Randomizer.setSeed(122L);
@@ -54,13 +56,8 @@ public class GridNeighborTest {
 		paint(g, tessel, 1024, 1024, dist, dist2);
 		
 		try {
-			if (allNeighbors) {
-	 			ImageIO.write(bMap, "png", new File("/tmp/gc_vs_approximate.png"));
-				System.err.println("Result written to /tmp/gc_vs_approximate.png");
-			} else {
-				ImageIO.write(bMap, "png", new File("/tmp/gc_vs_approximate_all_neighbors.png"));
-				System.err.println("Result written to /tmp/gc_vs_approximate_all_neighbors.png");
-			}
+ 			ImageIO.write(bMap, "png", new File(fileName));
+			System.err.println("Result written to " + fileName);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -104,8 +101,16 @@ public class GridNeighborTest {
 		g.setColor(Color.blue);
 		double sumsse = 0.0;
 		double c = 0.75;//1.0 / 1.33; 
-		if (tessel.allNeighborsInput.get()) {
-			c = 1/1.06;
+		if (tessel.useGreatCircleInput.get()) {
+			if (tessel.allNeighborsInput.get()) {
+				c = 1.0/1.06;//15.0/16.0;
+			}
+		} else {
+			if (tessel.allNeighborsInput.get()) {
+				c = 90.25;
+			} else {
+				c = 60.25;
+			}
 		}
 		for (int i = 0; i < dist.length; i++) {
 			g.drawOval((int)(dist2[i]*w1/max)-1, h1-(int)(dist[i]*c*h1/max)-1, 3, 3);

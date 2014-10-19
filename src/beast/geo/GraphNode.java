@@ -1,5 +1,6 @@
 package beast.geo;
 
+import java.util.Arrays;
 import java.util.Set;
 
 import beast.continuous.SphericalDiffusionModel;
@@ -12,7 +13,7 @@ abstract public class GraphNode {
 	GraphNode [] neighbours;
 
 	/** distance to neighbor **/
-	private double [] distance;
+	double [] distance;
 
 	/** return center of node in [latitude, longitude] **/
 	abstract public double [] getCenter();
@@ -53,12 +54,17 @@ abstract public class GraphNode {
 
 	abstract public void addVertices(Set<Vertex> vertices);
 	
-	void setUpDistances() {
+	void setUpDistances(boolean useGreatCircle) {
 		distance = new double[neighbours.length];
-		double [] center = getCenter();
-		for (int i = 0; i < neighbours.length; i++) {
-			double [] nbcenter = neighbours[i].getCenter();
-			distance[i] = GreatCircleDistance.pairwiseDistance(center, nbcenter);
+		
+		if (!useGreatCircle) {
+			Arrays.fill(distance, 1.0);
+		} else {
+			double [] center = getCenter();
+			for (int i = 0; i < neighbours.length; i++) {
+				double [] nbcenter = neighbours[i].getCenter();
+				distance[i] = GreatCircleDistance.pairwiseDistance(center, nbcenter);
+			}
 		}
 	}
 
