@@ -23,6 +23,7 @@ import beast.core.Input;
 @Description("Graph connecting nodes on the earth's surface")
 public class Graph extends BEASTObject {
 	public Input<Boolean> allNeighborsInput = new Input<Boolean>("allNeighbors", "consider all adjacent nodes are neighbours, not just the ones that have two vertices in common",  false);
+	public Input<Boolean> useGreatCircleInput = new Input<Boolean>("useGreatCircle", "use great circle distance between centers instead of Cartesian coordinates",  true);
 	
 	
 	public List<GraphNode> nodes;
