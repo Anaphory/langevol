@@ -103,7 +103,7 @@ public class SphereTesselation extends Graph {
 
 		// set up adjacency graph -- requires vertices to have adjacentTraingles to be set up
 		for (GraphNode t : nodes) {
-			((Triangle)t).calcNeighbours(allNeighborsInput.get());
+			((Triangle)t).calcNeighbours(allNeighborsInput.get(), useGreatCircleInput.get());
 		}
 		
 		// save memory

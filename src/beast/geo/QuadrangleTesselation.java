@@ -108,7 +108,7 @@ public class QuadrangleTesselation extends SphereTesselation {
 		// set up adjacency graph -- requires vertices to have adjacentGraphNode
 		// to be set up
 		for (GraphNode t : nodes) {
-			t.calcNeighbours(allNeighborsInput.get());
+			t.calcNeighbours(allNeighborsInput.get(), useGreatCircleInput.get());
 		}
 		
 		// only use those components that are connected to center
