@@ -71,7 +71,7 @@ public class Triangle extends GraphNode {
 	}
 	
 	@Override
-	void calcNeighbours(boolean allNeighborsInput) {
+	void calcNeighbours(boolean allNeighborsInput, boolean useGreatCircleDistance) {
 		Set<GraphNode> neighbourset = new HashSet<GraphNode>();
 		
 		Set<GraphNode> s = new HashSet<GraphNode>();
@@ -108,7 +108,7 @@ public class Triangle extends GraphNode {
 			neighbours = neighbourset.toArray(new Triangle[]{});
 		}
 		
-		setUpDistances();
+		setUpDistances(useGreatCircleDistance);
 	}
 
 	

@@ -61,7 +61,7 @@ public class Quadrangle extends GraphNode {
 	}
 
 	@Override
-	void calcNeighbours(boolean allNeighbors) {
+	void calcNeighbours(boolean allNeighbors, boolean useGreatCircleDistance) {
 		Set<GraphNode> neighbourset = new HashSet<GraphNode>();
 		
 		Set<GraphNode> s = new HashSet<GraphNode>();
@@ -89,7 +89,7 @@ public class Quadrangle extends GraphNode {
 		if (b) {
 			neighbours = neighbourset.toArray(new GraphNode[]{});
 		}
-		setUpDistances();
+		setUpDistances(useGreatCircleDistance);
 	}
 		
 

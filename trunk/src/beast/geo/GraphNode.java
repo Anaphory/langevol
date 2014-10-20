@@ -45,7 +45,7 @@ abstract public class GraphNode {
 			double maxLat, double maxLong);
 
 
-	abstract void calcNeighbours(boolean allNeighborsInput);
+	abstract void calcNeighbours(boolean allNeighborsInput, boolean useGreatCircleDistance);
 
 	@Override
 	public String toString() {
