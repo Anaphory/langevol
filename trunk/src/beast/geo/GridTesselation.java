@@ -185,7 +185,7 @@ public class GridTesselation extends SphereTesselation {
 			//System.out.println("Done in " + (end-start)/1000+" seconds");
 
 			start = System.currentTimeMillis();
-			singularValueDecomposition3();
+			singularValueDecomposition6();
 			end = System.currentTimeMillis();
 //
 //			System.out.println(Arrays.toString(U));
@@ -206,7 +206,7 @@ public class GridTesselation extends SphereTesselation {
 				Sm.setEntry(i, i, S[i]);
 			}
 			
-			RealMatrix P = Um.multiply(Sm).multiply(Vm);
+			RealMatrix P = Vm.multiply(Sm).multiply(Um.transpose());
 			double max = 0;
 			for (int i = 0; i < n; i++) {
 				for (int j = 0; j < n; j++) {
@@ -215,6 +215,8 @@ public class GridTesselation extends SphereTesselation {
 			}
 			System.out.println("Max abs differnce: " + max);
 			
+			//P = Vm.multiply(Um.transpose());
+			//System.out.println(P);
 			
 			
 			System.exit(0);
@@ -222,6 +224,7 @@ public class GridTesselation extends SphereTesselation {
 			
 			
 		}
+		
 	
 		
 	    /** Relative threshold for small singular values. */
@@ -1533,8 +1536,8 @@ public class GridTesselation extends SphereTesselation {
 //	                    // Make the singular values positive.
 	                	
 // RRB: no need for ordering when doing exponentiation	                	
-//	                    if (singularValues[k] <= 0) {
-//	                        singularValues[k] = singularValues[k] < 0 ? -singularValues[k] : 0;
+//	                    if (S[k] <= 0) {
+//	                        S[k] = S[k] < 0 ? -S[k] : 0;
 //
 //	                        for (int i = 0; i <= pp; i++) {
 //	                            V[n*k + i] = -V[n*k + i];
@@ -1542,12 +1545,12 @@ public class GridTesselation extends SphereTesselation {
 //	                    }
 //	                    // Order the singular values.
 //	                    while (k < pp) {
-//	                        if (singularValues[k] >= singularValues[k + 1]) {
+//	                        if (S[k] >= S[k + 1]) {
 //	                            break;
 //	                        }
-//	                        double t = singularValues[k];
-//	                        singularValues[k] = singularValues[k + 1];
-//	                        singularValues[k + 1] = t;
+//	                        double t = S[k];
+//	                        S[k] = S[k + 1];
+//	                        S[k + 1] = t;
 //	                        if (k < n - 1) {
 //	                            for (int i = 0; i < n; i++) {
 //	                                t = V[i+n*(k + 1)];
@@ -2184,6 +2187,34 @@ public class GridTesselation extends SphereTesselation {
 			U  = e.getEigenVectors();
 	        V = e.getInverseEigenVectors();
 	    }
+
+	    public void singularValueDecomposition6() {
+			long start = System.currentTimeMillis();
+			int n = nodes.size();
+			FlatMatrixEigenSystem2 es = new FlatMatrixEigenSystem2();
+	        final double[] A = new double[n*n];
+			for (GraphNode t : nodes) {
+				for (GraphNode node : t.neighbours) {
+					A[t.id+n*node.id] = 1; 
+				}
+				A[t.id+n*t.id] = -t.neighbours.length; 
+			}
+			
+//			double [][] matrix2 = new double[n][n];
+//			for (int i = 0; i < n; i++) {
+//				for (int j = 0; j < n; j++) {
+//					double sum = 0;
+//					for (int k = 0; k < n; k++) {
+//						sum += A[i*n+k] * A[k*n+j];
+//					}
+//					matrix2[i][j] = sum;
+//				}
+//			}
+			EigenDecomposition e = es.decomposeMatrix(A, false);
+			S = e.getEigenValues();
+			U  = e.getEigenVectors();
+	        V = e.getInverseEigenVectors();
+	    }
 	
 		void loadLibrary() {
 			try {
@@ -2197,10 +2228,47 @@ public class GridTesselation extends SphereTesselation {
 			}
 		}
 		
+		static public void getTransitionProbabilities(double distance, double[] probabilities, int nrOfStates, EigenDecomposition eigenDecomposition) {
+	
+		    int i, j, k;
+		    double temp;
+		
+		    // is the following really necessary?
+		    // implemented a pool of iexp matrices to support multiple threads
+		    // without creating a new matrix each call. - AJD
+		    // a quick timing experiment shows no difference - RRB
+		    double[] iexp = new double[nrOfStates * nrOfStates];
+		    // Eigen vectors
+		    double[] Evec = eigenDecomposition.getEigenVectors();
+		    // inverse Eigen vectors
+		    double[] Ievc = eigenDecomposition.getInverseEigenVectors();
+		    // Eigen values
+		    double[] Eval = eigenDecomposition.getEigenValues();
+		    for (i = 0; i < nrOfStates; i++) {
+		        temp = Math.exp(distance * Eval[i]);
+		        for (j = 0; j < nrOfStates; j++) {
+		            iexp[i * nrOfStates + j] = Ievc[i * nrOfStates + j] * temp;
+		        }
+		    }
+		
+		    int u = 0;
+		    for (i = 0; i < nrOfStates; i++) {
+		        for (j = 0; j < nrOfStates; j++) {
+		            temp = 0.0;
+		            for (k = 0; k < nrOfStates; k++) {
+		                temp += Evec[i * nrOfStates + k] * iexp[k * nrOfStates + j];
+		            }
+		
+		            probabilities[u] = Math.abs(temp);
+		            u++;
+		        }
+		    }
+		} // getTransitionProbabilities
+		
 		public static void main(String[] args) throws Exception {
 			final GridTesselation tessel = new GridTesselation();
 			tessel.loadLibrary();
-			tessel.initByName("depth", 41, "bbox", "5 120 47 154", "reddistance", "0.5", 
+			tessel.initByName("depth", 51, "bbox", "5 120 47 154", "reddistance", "0.5", 
 					"allNeighbors", true, "useGreatCircle", true);
 			
 			int n = tessel.nodes.size();
@@ -2256,10 +2324,41 @@ Max abs differnce: 1.0835776720341528E-13
 java apache matrix=array of array SVD Done in 41.5 seconds
 optimised java SVD Done in 5.4 seconds
 native - large TINY Done in 3.9 seconds
+EigenSystemBEAST Done in 24.4 seconds
+EigenSystemApache Done in 22.1 seconds (version0) 12.3 seconds (version2) 11.6 seconds (version3)
 
 #nodes= 1600
 java apache matrix=array of array SVD 193.6 seconds
 optimised java SVD Done in 19.4 seconds
 native SVD in 16.8 seconds
 
+
+#nodes= 576
+AStep 1 1.7 seconds
+AStep 2 0.3 seconds
+Step 3 0.2 seconds
+Done in 2.3 seconds
+Max abs differnce: 4.608292913932388E-14
+
+#nodes= 1024
+AStep 1 16.7 seconds
+AStep 2 1.6 seconds
+Step 3 1.6 seconds
+Done in 20.0 seconds (version 0) 12.1 -14.1 (version 4) 12.5 - 14.6 (version 5)
+
+#nodes= 1600
+ST 1 Done in 10.3 seconds
+ST 1 Done in 2.4 seconds
+ST 2 Done in 12.6 seconds
+AStep 1 25.4 seconds
+AStep 2 7.9 seconds
+Step 3 6.7 seconds
+Done in 40.0 seconds
+Max abs differnce: 1.046766839873925E-13
+
+#nodes= 2500
+AStep 1 88.9 seconds
+AStep 2 27.7 seconds
+Step 3 27.8 seconds
+Done in 144.5 148.8seconds version5 141.5 - 148.8 version4
 */
