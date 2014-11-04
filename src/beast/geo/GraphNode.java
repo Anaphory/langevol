@@ -41,6 +41,17 @@ abstract public class GraphNode {
 		return new Vertex(center[0], center[1]);
 	}
 
+	public static Vertex getHalfway(Vertex c1, Vertex c2, Vertex c3, Vertex c4) {
+		double [] mean = new double[3];
+		
+		for (int i = 0; i < 3; i++) {
+			mean[i] = (c1.cart[i] + c2.cart[i] + c3.cart[i] + c4.cart[i]) / 4.0;
+		}
+		normalise(mean);
+		double [] center = SphericalDiffusionModel.cartesian2Sperical(mean);
+		return new Vertex(center[0], center[1]);
+	}
+
 	abstract public boolean hasPointsInside(double minLat, double minLong,
 			double maxLat, double maxLong);
 
@@ -76,6 +87,15 @@ abstract public class GraphNode {
 	
 	public double getDistance(int i) {
 		return distance[i];
+	}
+
+	public boolean isNeighbour(GraphNode sourceNode) {
+		for (GraphNode neighbour : neighbours) {
+			if (neighbour.id == sourceNode.id) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 }
