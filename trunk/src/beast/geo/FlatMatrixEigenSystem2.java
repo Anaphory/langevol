@@ -52,6 +52,9 @@ public class FlatMatrixEigenSystem2 implements EigenSystem {
 	int n;
 	
     public EigenDecomposition decomposeMatrix(double[] matrix, boolean isSymmetric) throws MathArithmeticException  {
+    	System.out.println("Start EigneDecomposition");
+        long start = System.currentTimeMillis();
+        long start0 = start;
     	n = (int) Math.sqrt(matrix.length);
     	if (n*n != matrix.length) {
     		throw new RuntimeException("expected a square matrix");
@@ -63,7 +66,6 @@ public class FlatMatrixEigenSystem2 implements EigenSystem {
         double [] Evec = new double[(n*n)];
         double [] Ievc = new double[(n*n)];
 
-        long start = System.currentTimeMillis();
         if (isSymmetric) {
             transformToTridiagonal(matrix);
             long end = System.currentTimeMillis();System.out.println("SymStep 1 " + ((end-start)/100)/10.0+" seconds");start=end;
@@ -85,7 +87,13 @@ public class FlatMatrixEigenSystem2 implements EigenSystem {
             //for (int i  = 0; i < n; i++) {
             //	System.arraycopy(eigenvectors[i].toArray(), 0, Evec, i * n, n);
             //}
-            System.arraycopy(flateigenvectors, 0, Evec, 0, n*n);
+            //System.arraycopy(flateigenvectors, 0, Evec, 0, n*n);
+
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < n; j++) {
+                	Evec[i*n+j] =  flateigenvectors[i + j*n];
+                }
+            }
             end = System.currentTimeMillis();System.out.println("AStep 2 " + ((end-start)/100)/10.0+" seconds");start=end;
         }
         
@@ -102,6 +110,7 @@ public class FlatMatrixEigenSystem2 implements EigenSystem {
     	
 
         long end = System.currentTimeMillis();System.out.println("Step 3 " + ((end-start)/100)/10.0+" seconds");start=end;
+        System.out.println("Total EigenDecomposition time " + ((end-start0)/100)/10.0+" seconds");
         return new EigenDecomposition(Evec, Ievc, realEigenvalues, imagEigenvalues);
     }
 

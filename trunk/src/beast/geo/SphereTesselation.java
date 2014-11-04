@@ -23,7 +23,7 @@ import beast.util.Randomizer;
 public class SphereTesselation extends Graph {
 	public Input<Integer> depthInput = new Input<Integer>("depth", "number of splits of base tesselation - higher means more traingles (4^depth)", 3);
 
-	public Input<String> bboxInput = new Input<String>("bbox", "bounding box as space separated list (in min-latitude min-longitude max-latitude max-longitude)"
+	public Input<String> bboxInput = new Input<String>("bbox", "bounding box as space separated list (in min-latitude min-longitude max-latitude max-longitude), used to restrict delete nodes outside box"
 			+ " e.g. ");
 
 

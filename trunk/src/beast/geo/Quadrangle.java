@@ -2,6 +2,7 @@ package beast.geo;
 
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import beast.continuous.SphericalDiffusionModel;
@@ -108,6 +109,19 @@ public class Quadrangle extends GraphNode {
 		vertices.add(v2);
 		vertices.add(v3);
 		vertices.add(v4);
+	}
+
+
+	public void split(List<GraphNode> newQuadrangles) {
+		Vertex v12 = getHalfway(v1, v2);
+		Vertex v23 = getHalfway(v2, v3);
+		Vertex v34 = getHalfway(v3, v4);
+		Vertex v41 = getHalfway(v4, v1);
+		Vertex center = getHalfway(v1, v2, v3, v4);
+		newQuadrangles.add(new Quadrangle(v1, v12, center, v41));
+		newQuadrangles.add(new Quadrangle(v2, v23, center, v12));
+		newQuadrangles.add(new Quadrangle(v3, v34, center, v23));
+		newQuadrangles.add(new Quadrangle(v4, v41, center, v34));
 	}
 
 }

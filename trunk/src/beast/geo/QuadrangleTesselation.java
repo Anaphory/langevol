@@ -28,7 +28,7 @@ public class QuadrangleTesselation extends SphereTesselation {
 			+ "If not specified, all distances are 1.0",
 			new File("/home/remco/data/geo/aboriginal25.bmp"));
 	public Input<Boolean> removeOveWaterInput = new Input<Boolean>("removeWater","remove items over water as defined in map", true);
-	public Input<Double> reddistanceInput = new Input<Double>("reddistance","distance fpr red coloured items", 1.0);
+	public Input<Double> reddistanceInput = new Input<Double>("reddistance","distance for red coloured items in map", 1.0);
 	
 	QuadrangleTesselation() {
 		bboxInput.setRule(Validate.REQUIRED);
