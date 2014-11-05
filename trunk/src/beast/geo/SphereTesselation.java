@@ -1,5 +1,6 @@
 package beast.geo;
 
+
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
@@ -8,6 +9,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -126,6 +128,27 @@ public class SphereTesselation extends Graph {
 
 	/** ensure graph nodes are numbered from 0 to #graphnodes-1 **/
 	void renumber() {
+		Collections.sort(nodes, new Comparator<GraphNode>() {
+			@Override
+			public int compare(GraphNode o1, GraphNode o2) {
+				double [] center1 = o1.getCenter();
+				double [] center2 = o2.getCenter();
+				if (center1[0] < center2[0]) {
+					return -1;
+				}
+				if (center1[0] > center2[0]) {
+					return 1;
+				}
+				if (center1[1] < center2[1]) {
+					return -1;
+				}
+				if (center1[1] > center2[1]) {
+					return 1;
+				}
+				return 0;
+			}
+		});
+		
 		int i = 0;
 		for (GraphNode t : nodes) {
 			t.id = i++;

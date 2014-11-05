@@ -30,7 +30,7 @@ public class QuadrangleTesselation extends SphereTesselation {
 	public Input<Boolean> removeOveWaterInput = new Input<Boolean>("removeWater","remove items over water as defined in map", true);
 	public Input<Double> reddistanceInput = new Input<Double>("reddistance","distance for red coloured items in map", 1.0);
 	
-	QuadrangleTesselation() {
+	public QuadrangleTesselation() {
 		bboxInput.setRule(Validate.REQUIRED);
 	}
 
@@ -81,13 +81,25 @@ public class QuadrangleTesselation extends SphereTesselation {
 		int h = image.getHeight();
 		if (removeOveWaterInput.get()) {
 			for (GraphNode t : nodes) {
-				double [] c = t.getCenter();
-				int x =(int)( w * (c[1]+180) / 360.0);
-				int y =(int)( h * (c[0]+90) / 180.0);
-				int color = image.getRGB(x, y) & 0xFFFFFF;
-				if (color != 0xFF0000) {
+				int k = 0;
+				for (Vertex v : t.getVertices()) {
+					int x =(int)( w * (v.long1+180) / 360.0);
+					int y =(int)( h * (v.lat1+90) / 180.0);
+					int color = image.getRGB(x, y) & 0xFFFFFF;
+					if (color != 0xFF0000) {
+						k++;
+					}					
+				}
+				if (k > 1) { // at least 2 vertices on land
 					filteredTriangles.add(t);
 				}
+//				double [] c = t.getCenter();
+//				int x =(int)( w * (c[1]+180) / 360.0);
+//				int y =(int)( h * (c[0]+90) / 180.0);
+//				int color = image.getRGB(x, y) & 0xFFFFFF;
+//				if (color != 0xFF0000) {
+//					filteredTriangles.add(t);
+//				}
 			}
 			nodes = filteredTriangles;
 		}
@@ -156,6 +168,7 @@ public class QuadrangleTesselation extends SphereTesselation {
 			int y =(int)( h * (c[0]+90) / 180.0);
 			int color = image.getRGB(x, y) & 0xFFFFFF;
 			if (color == 0x00FF00) {
+				t.type = 1;
 				t.scaleDistance(redDistance);
 			}
 		}
