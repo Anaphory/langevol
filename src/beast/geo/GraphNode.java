@@ -1,6 +1,8 @@
 package beast.geo;
 
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import beast.continuous.SphericalDiffusionModel;
@@ -14,6 +16,10 @@ abstract public class GraphNode {
 
 	/** distance to neighbor **/
 	double [] distance;
+	
+	/** type of node, e.g. whether it is over land, water or the coast 
+	 * interpretations depends on the kind of graph **/
+	int type = 0;
 
 	/** return center of node in [latitude, longitude] **/
 	abstract public double [] getCenter();
@@ -65,6 +71,12 @@ abstract public class GraphNode {
 
 	abstract public void addVertices(Set<Vertex> vertices);
 	
+	Set<Vertex> getVertices() {
+		Set<Vertex> vertices = new HashSet<Vertex>();
+		addVertices(vertices);
+		return vertices;
+	}
+
 	void setUpDistances(boolean useGreatCircle) {
 		distance = new double[neighbours.length];
 		

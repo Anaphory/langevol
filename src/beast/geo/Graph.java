@@ -28,7 +28,7 @@ public class Graph extends BEASTObject {
 	
 	public List<GraphNode> nodes;
 	
-	DistanceMatrix distances;
+	DistanceMatrix distanceMatrix;
 
 	LatLongMap latLongMap;
 	
@@ -49,7 +49,7 @@ public class Graph extends BEASTObject {
 		
 		LatLongMap(List<GraphNode> nodes) {
 			final int X = 20; 
-			final int MULTI_X = 2*X/3; 
+			final int MULTI_X = 4*X/3; 
 			
 			Set<Vertex> vertices = new HashSet<Vertex>();
 			for (GraphNode t : nodes) {
@@ -69,6 +69,11 @@ public class Graph extends BEASTObject {
 				maxLong = Math.max(maxLong, v.long1);
 				minLong = Math.min(minLong, v.long1);
 			}
+			double delta = 1.5;
+			maxLat += delta;
+			minLat -= delta;
+			maxLong += delta;
+			minLong -= delta;
 
 			// determine step size
 			for (GraphNode node : nodes) {
@@ -217,6 +222,9 @@ public class Graph extends BEASTObject {
 		GraphNode getClosestNode(double latitude, double longitude) {
 			int iLat = (int)((latitude - minLat + deltaLat/2) / deltaLat);
 			int iLong = (int)((longitude - minLong + deltaLong/2) / deltaLong);
+			if (iLat < 0 || iLat >= map.length || iLong < 0 || iLong >= map[0].length) {
+				return null;
+			}
 			return map[iLat][iLong];
 		}
 	} // class LatLongMap
@@ -254,6 +262,60 @@ public class Graph extends BEASTObject {
 			return 0;
 		}
 	} // class DistanceGNodeComparator
+	
+
+	public void shortestPath(GraphNode t1, GraphNode t2, List<GraphNode> path1) {
+		//List<GraphNode> path2 = new ArrayList();
+		//shortestPath(t1, 1.0, t2, 1.0, path1, path2);
+		//for (int i = path2.size() - 1; i >= 0; i--) {
+		//	path1.add(path2.get(i));
+		//}
+		final DistanceGNodeComparator comparator = new DistanceGNodeComparator();
+
+		boolean [] done1 = new boolean [nodes.size()];
+		double [] dist1 = new double[nodes.size()];
+		int[] prev1 = new int[nodes.size()];
+		
+		done1[t1.id] = true;
+		prev1[t1.id] = t1.id;
+		PriorityQueue<DistantGNode> queue1 = new PriorityQueue<DistantGNode>(comparator);
+		queue1.add(new DistantGNode(0, t1));
+		
+		int targetID = t2.id;
+
+		
+		while (queue1.size() > 0) {
+			DistantGNode ct1 = queue1.peek();
+			
+			int connection = doStep(queue1, dist1, prev1, done1, targetID);
+			if (connection >= 0) {
+				buildPaths(connection, t1.id, prev1, path1);
+				return;					
+			}
+		}
+		return;
+
+	}
+	
+	int doStep(PriorityQueue<DistantGNode> queue1, double [] dist1, int [] prev1, boolean [] done1, int targetID) {
+		GraphNode gnode = queue1.poll().gnode;
+		double dist = dist1[gnode.id];
+		for (int i = 0; i < gnode.neighbours.length; i++) {
+			GraphNode t = gnode.neighbours[i];
+			double d = gnode.getDistance(i);
+			if (!done1[t.id] || dist + d < dist1[t.id]) {
+				dist1[t.id] = dist + d;
+				prev1[t.id] = gnode.id;
+				done1[t.id] = true;
+				if (t.id == targetID) {
+					// we have a connection
+					return t.id;
+				}
+				queue1.add(new DistantGNode(dist + d, t));
+			}
+		}
+		return -1;
+	}
 	
 	public int shortestPath(GraphNode t1, double w1, GraphNode t2, double w2, List<GraphNode> path1, List<GraphNode> path2) {
 		final DistanceGNodeComparator comparator = new DistanceGNodeComparator();
@@ -457,10 +519,10 @@ public class Graph extends BEASTObject {
 
 		long end = System.currentTimeMillis();
 		System.err.println(" Done in "  + (end-start)/1000 + " sec ");
-		
-		return new DistanceMatrix(distances);
+		this.distanceMatrix = new DistanceMatrix(distances); 
+		return this.distanceMatrix;
 	}
-
+	
 	
 	int doStep(PriorityQueue<DistantGNode> queue1, double [] dist1, int [] prev1, boolean [] done1, boolean [] done2) {
 		GraphNode gnode = queue1.poll().gnode;
@@ -511,16 +573,34 @@ public class Graph extends BEASTObject {
 		} while (i != id1);
 	}
 
+	
+	public GraphNode mapLatLongToGraphNode(double lat, double long_) {
+		if (latLongMap == null) {
+			throw new RuntimeException("call setUpLatLongMap() before calling mapLatLongToGraphNode()");
+		}
+		GraphNode node = latLongMap.getClosestNode(lat, long_);
+		return node;
+	}
+	
+	
 	public double getDistance(double[] start, double[] stop) {
 		if (latLongMap == null) {
 			throw new RuntimeException("call setUpLatLongMap() before calling getDistance()");
 		}
-		GraphNode startNode = latLongMap.getClosestNode(start[0], start[1]);
-		GraphNode endNode = latLongMap.getClosestNode(stop[0], stop[1]);
-		double distance = distances.distances[startNode.id][endNode.id];
-		return distance;
+		GraphNode startNode = mapLatLongToGraphNode(start[0], start[1]);
+		GraphNode endNode = mapLatLongToGraphNode(stop[0], stop[1]);
+		return getDistance(startNode, endNode);
+	}
+	
+	public double getDistance(int startID, int stopID) {
+		return distanceMatrix.distances[startID][stopID];
 	}
 
+	public double getDistance(GraphNode startNode, GraphNode endNode) {
+		double distance = distanceMatrix.distances[startNode.id][endNode.id];
+		return distance;
+	}
+	
 	public GraphNode getLowerLeftCorner() {
 		GraphNode llCorner = nodes.get(0);
 		double [] center = llCorner.getCenter();
@@ -532,5 +612,9 @@ public class Graph extends BEASTObject {
 			}
 		}
 		return llCorner;
+	}
+
+	public int getSize() {
+		return nodes.size();
 	}
 }

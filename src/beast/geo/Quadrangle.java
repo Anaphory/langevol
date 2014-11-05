@@ -111,7 +111,6 @@ public class Quadrangle extends GraphNode {
 		vertices.add(v4);
 	}
 
-
 	public void split(List<GraphNode> newQuadrangles) {
 		Vertex v12 = getHalfway(v1, v2);
 		Vertex v23 = getHalfway(v2, v3);
