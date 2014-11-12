@@ -69,7 +69,7 @@ public class Graph extends BEASTObject {
 				maxLong = Math.max(maxLong, v.long1);
 				minLong = Math.min(minLong, v.long1);
 			}
-			double delta = 1.5;
+			double delta = 10.5;
 			maxLat += delta;
 			minLat -= delta;
 			maxLong += delta;
@@ -616,5 +616,16 @@ public class Graph extends BEASTObject {
 
 	public int getSize() {
 		return nodes.size();
+	}
+
+	public int[] getNodesSortedByDistance(int nodeID) {
+		double [] d = distanceMatrix.distances[nodeID];
+		int n = d.length;
+		int [] index = new int[n];
+		for (int i = 0; i < n; i++) {
+			index[i] = i;
+		}
+		beast.util.HeapSort.sort(d, index);
+		return index;
 	}
 }
