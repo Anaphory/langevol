@@ -10,6 +10,7 @@ import java.util.List;
 import javax.imageio.ImageIO;
 
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
+import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.SingularValueDecomposition;
 import org.apache.commons.math3.util.FastMath;
@@ -144,7 +145,7 @@ public class GridTesselation extends SphereTesselation {
 			int n = nodes.size();
 			RealMatrix m = new Array2DRowRealMatrix(n, n);
 			//RealMatrix m = new OpenMapRealMatrix(n,n);
-			int [][] matrix = new int[n][n];
+			double [][] matrix = new double[n][n];
 			for (GraphNode t : nodes) {
 				for (GraphNode node : t.neighbours) {
 					matrix[t.id][node.id] = 1; 
@@ -185,7 +186,7 @@ public class GridTesselation extends SphereTesselation {
 			//System.out.println("Done in " + (end-start)/1000+" seconds");
 
 			start = System.currentTimeMillis();
-			singularValueDecomposition6();
+			eigenValueDecomposition1();
 			end = System.currentTimeMillis();
 //
 //			System.out.println(Arrays.toString(U));
@@ -200,20 +201,23 @@ public class GridTesselation extends SphereTesselation {
 			RealMatrix Vm = new Array2DRowRealMatrix(n, n);
 			for (int i = 0; i < n; i++) {
 				for (int j = 0; j < n; j++) {
-					Um.setEntry(i,  j, U[j*n+i]);
+					Um.setEntry(i,  j, U[i*n+j]);
 					Vm.setEntry(i,  j, V[i*n+j]);
 				}
 				Sm.setEntry(i, i, S[i]);
 			}
 			
-			RealMatrix P = Vm.multiply(Sm).multiply(Um.transpose());
-			double max = 0;
-			for (int i = 0; i < n; i++) {
-				for (int j = 0; j < n; j++) {
-					max = Math.max(max, Math.abs(matrix[i][j] - P.getEntry(i, j)));
-				}
-			}
-			System.out.println("Max abs differnce: " + max);
+			System.out.println(isSymetric(Vm));
+			System.out.println(isSymetric(Um));
+			
+			test(Vm, Sm, Um, matrix);
+			test(Vm.transpose(), Sm, Um, matrix);
+			test(Vm, Sm, Um.transpose(), matrix);
+			test(Vm.transpose(), Sm, Um.transpose(), matrix);
+			test(Um, Sm, Vm, matrix);
+			test(Um.transpose(), Sm, Vm, matrix);
+			test(Um, Sm, Vm.transpose(), matrix);
+			test(Um.transpose(), Sm, Vm.transpose(), matrix);
 			
 			//P = Vm.multiply(Um.transpose());
 			//System.out.println(P);
@@ -227,7 +231,30 @@ public class GridTesselation extends SphereTesselation {
 		
 	
 		
-	    /** Relative threshold for small singular values. */
+	    private boolean isSymetric(RealMatrix matrix) {
+	        final double symTol = 10 * matrix.getRowDimension() * matrix.getColumnDimension() * Precision.EPSILON;
+	        boolean isSymmetric = MatrixUtils.isSymmetric(matrix, symTol);
+	        return isSymmetric;
+		}
+
+		private void test(RealMatrix vm, RealMatrix sm, RealMatrix um, double[][] matrix) {
+			RealMatrix P = vm.multiply(vm).multiply(um);
+			double max = 0;
+			int n = nodes.size();
+			for (int i = 0; i < n; i++) {
+				for (int j = 0; j < n; j++) {
+					double d1 = matrix[i][j];
+					double d2 = P.getEntry(i, j);
+					max = Math.max(max, Math.abs(d1 - d2));
+				}
+			}
+			System.out.println("Max abs differnce: " + max);
+			
+		}
+
+
+
+		/** Relative threshold for small singular values. */
 	    //private static final double EPS = 0x1.0p-52;
 	    private static final double EPS = 0x1.0p-26;
 	    /** Absolute threshold for small singular values. */
@@ -1166,6 +1193,12 @@ public class GridTesselation extends SphereTesselation {
 		native double[] singularValueDecompositionNativeDP(double[] a, int n);
 		/** single precision **/
 		native float[] singularValueDecompositionNativeSP(float[] a, int n);
+
+
+		/** double precision **/
+		native double[] eigenValueDecompositionNativeDP(double[] a, int n);
+		/** single precision **/
+		native float[] eigenValueDecompositionNativeSP(float[] a, int n);
 
 		/* adapted from org.apache.commons.math3.linear.SingularValueDecomposition */
 	    public void singularValueDecomposition3() {
@@ -2188,10 +2221,9 @@ public class GridTesselation extends SphereTesselation {
 	        V = e.getInverseEigenVectors();
 	    }
 
-	    public void singularValueDecomposition6() {
+	    public void eigenValueDecomposition1() {
 			long start = System.currentTimeMillis();
 			int n = nodes.size();
-			FlatMatrixEigenSystem2 es = new FlatMatrixEigenSystem2();
 	        final double[] A = new double[n*n];
 			for (GraphNode t : nodes) {
 				for (GraphNode node : t.neighbours) {
@@ -2199,6 +2231,18 @@ public class GridTesselation extends SphereTesselation {
 				}
 				A[t.id+n*t.id] = -t.neighbours.length; 
 			}
+			
+//			double [] R = eigenValueDecompositionNativeDP(A, n);
+//			S = new double[n];
+//			U = new double[n*n];
+//			V = new double[n*n];
+//			System.arraycopy(R, 0, U, 0, n*n);
+//			System.arraycopy(R, n*n, S, 0, n);
+//			System.arraycopy(R, n*n+n, V, 0, n*n);
+//			if (true) {
+//				return;
+//			}
+			
 			
 //			double [][] matrix2 = new double[n][n];
 //			for (int i = 0; i < n; i++) {
@@ -2210,6 +2254,7 @@ public class GridTesselation extends SphereTesselation {
 //					matrix2[i][j] = sum;
 //				}
 //			}
+			FlatMatrixEigenSystem2 es = new FlatMatrixEigenSystem2();
 			EigenDecomposition e = es.decomposeMatrix(A, false);
 			S = e.getEigenValues();
 			U  = e.getEigenVectors();
@@ -2268,7 +2313,7 @@ public class GridTesselation extends SphereTesselation {
 		public static void main(String[] args) throws Exception {
 			final GridTesselation tessel = new GridTesselation();
 			tessel.loadLibrary();
-			tessel.initByName("depth", 51, "bbox", "5 120 47 154", "reddistance", "0.5", 
+			tessel.initByName("depth", 3, "bbox", "5 120 47 154", "reddistance", "0.5", 
 					"allNeighbors", true, "useGreatCircle", true);
 			
 			int n = tessel.nodes.size();
@@ -2361,4 +2406,12 @@ AStep 1 88.9 seconds
 AStep 2 27.7 seconds
 Step 3 27.8 seconds
 Done in 144.5 148.8seconds version5 141.5 - 148.8 version4
+
+
+
+
+
+#nodes= 1024
+eigenValueDecompositionNativeDP Done in 45.7 seconds
+
 */
