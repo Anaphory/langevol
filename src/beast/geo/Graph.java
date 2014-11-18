@@ -179,8 +179,8 @@ public class Graph extends BEASTObject {
 			// sanity check
 			for (GraphNode node : nodes) {
 				GraphNode closest = getClosestNode(centers[node.id][0], centers[node.id][1]);
-				if (node.id != closest.id) {
-					throw new RuntimeException("node is not closest to itself");
+				if (closest == null || node.id != closest.id) {
+					System.err.println("node " + node.id + " is not closest to itself " + closest);
 				}
 			}
 			// sanity check 2
@@ -216,6 +216,9 @@ public class Graph extends BEASTObject {
 //				int k = 3;
 //				k++;
 //			}
+			if (iLat < 0 || iLong < 0 || iLat > map.length || iLong > map[0].length) {
+				return;
+			}
 			map[iLat][iLong] = node;
 		}
 

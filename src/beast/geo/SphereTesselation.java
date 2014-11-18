@@ -19,6 +19,7 @@ import javax.swing.JPanel;
 
 import beast.core.Description;
 import beast.core.Input;
+import beast.core.parameter.IntegerParameter;
 import beast.util.Randomizer;
 
 @Description("Tesselates a sphere with equal sized triangles")
@@ -234,86 +235,108 @@ public class SphereTesselation extends Graph {
 
 	public static void main(String[] args) throws Exception {
 		JFrame frame = new JFrame();
-		final SphereTesselation tessel = new SphereTesselation();
-//		tessel.initByName("depth", 8, "bbox", "10 112 40 154");
-		tessel.initByName("depth",4, "allNeighbors", true);
+//		final SphereTesselation tessel = new SphereTesselation();
+//		tessel.initByName("depth", 4, "bbox", "-70 -180 60 180");
+
+		final QuadrangleTesselation tessel = new QuadrangleTesselation();
+		tessel.initByName("depth", 101, "bbox", "-70 -180 70 180", "reddistance", "1.0", 
+				"allNeighbors", true, "removeWater", false, "useGreatCircle", true, 
+				"useSphericalCorrection", false);
+
 		
-		final List<GraphNode> path1 = new ArrayList<GraphNode>();
-		final List<GraphNode> path2 = new ArrayList<GraphNode>();
-		final List<GraphNode> path3 = new ArrayList<GraphNode>();
-		int n = tessel.nodes.size();
-		Randomizer.setSeed(129L);
-		final GraphNode t1 = tessel.nodes.get(Randomizer.nextInt(n));
-		final GraphNode t2 = tessel.nodes.get(Randomizer.nextInt(n));
-		final GraphNode t3 = tessel.nodes.get(Randomizer.nextInt(n));
-		tessel.shortestPath(t1, 1.0, t2, 1.0, t3, 1.0, path1, path2, path3);
-		System.err.println("path1 : +" + path1.size() + " path2 : +" + path2.size() + " path3 : +" + path3.size());
+//		final GridTesselation tessel = new GridTesselation();
+//		tessel.initByName("depth", 11, "bbox", "-70 -180 60 180", "reddistance", "0.5", 
+//				"allNeighbors", true, "useGreatCircle", true);
+
 		
-		final double [] d = tessel.distances(t1);
-		System.err.println(Arrays.toString(d));
+		GraphEulerBasedSubstitutionModel model = new GraphEulerBasedSubstitutionModel();
+		IntegerParameter location = new IntegerParameter();
+		location.initByName("dimension", 1197, "value", 1);
+		model.initByName("graph", tessel, "location", location,
+        		"relaxationMode", "not_relaxed");
+		//model.sanitycheck();
+
+		
+//		final List<GraphNode> path1 = new ArrayList<GraphNode>();
+//		final List<GraphNode> path2 = new ArrayList<GraphNode>();
+//		final List<GraphNode> path3 = new ArrayList<GraphNode>();
+//		int n = tessel.nodes.size();
+//		Randomizer.setSeed(129L);
+//		final GraphNode t1 = tessel.nodes.get(Randomizer.nextInt(n));
+//		final GraphNode t2 = tessel.nodes.get(Randomizer.nextInt(n));
+//		final GraphNode t3 = tessel.nodes.get(Randomizer.nextInt(n));
+//		tessel.shortestPath(t1, 1.0, t2, 1.0, t3, 1.0, path1, path2, path3);
+//		System.err.println("path1 : +" + path1.size() + " path2 : +" + path2.size() + " path3 : +" + path3.size());
+//		
+//		final double [] d = tessel.distances(t1);
+//		System.err.println(Arrays.toString(d));
 		
 		final BufferedImage image = ImageIO.read(new File("World98b.png"));
-		JPanel panel = new JPanel() {
-			private static final long serialVersionUID = 1L;
-			int w;
-
-			protected void paintComponent(java.awt.Graphics g) {
-				this.w = getWidth()/2;
-				g.setColor(Color.white);
-				g.fillRect(0, 0, getWidth(), getHeight());
-//				g.drawImage(image, 0, 0, getWidth(), getHeight(), 0, 0, image.getWidth(), image.getHeight(), null);
-//				double w = getWidth()/360.0;
-//				double h = getHeight()/180.0;
-				double w = getWidth()/(tessel.maxLong - tessel.minLong);
-				double h = getHeight()/(tessel.maxLat - tessel.minLat);
-				g.drawImage(image, 0, 0, getWidth(), getHeight(), 
-						(int)(image.getWidth() * (180+tessel.minLong) / 360.0), 
-						(int)(image.getHeight() * (90+tessel.minLat) / 180.0), 
-						(int)(image.getWidth() * (180+tessel.maxLong) / 360.0),
-						(int)(image.getHeight() * (90+tessel.maxLat) / 180.0), null);
-				
-				
-				g.setColor(Color.red);
-				g.drawRect((int)((tessel.minLong + 180) * w), (int)((tessel.minLat + 90) * h), (int)((tessel.maxLong -tessel.minLong) * w), (int)((tessel.maxLat - tessel.minLat) * h));
-				g.setColor(Color.blue);
-				for (GraphNode gn : tessel.nodes) {
-					Triangle t = (Triangle) gn;
-//					drawLine(g, (int)((t.v1.long1 + 180) * w), (int)((t.v1.lat1 + 90) * h), (int)((t.v2.long1 + 180) * w), (int)((t.v2.lat1 + 90) * h));
-//					drawLine(g, (int)((t.v1.long1 + 180) * w), (int)((t.v1.lat1 + 90) * h), (int)((t.v3.long1 + 180) * w), (int)((t.v3.lat1 + 90) * h));
-//					drawLine(g, (int)((t.v2.long1 + 180) * w), (int)((t.v2.lat1 + 90) * h), (int)((t.v3.long1 + 180) * w), (int)((t.v3.lat1 + 90) * h));
-					drawLine(g, (int)((t.v1.long1 - tessel.minLong) * w), (int)((t.v1.lat1 - tessel.minLat) * h), (int)((t.v2.long1 - tessel.minLong) * w), (int)((t.v2.lat1 - tessel.minLat) * h));
-					drawLine(g, (int)((t.v1.long1 - tessel.minLong) * w), (int)((t.v1.lat1 - tessel.minLat) * h), (int)((t.v3.long1 - tessel.minLong) * w), (int)((t.v3.lat1 - tessel.minLat) * h));
-					drawLine(g, (int)((t.v2.long1 - tessel.minLong) * w), (int)((t.v2.lat1 - tessel.minLat) * h), (int)((t.v3.long1 - tessel.minLong) * w), (int)((t.v3.lat1 - tessel.minLat) * h));
-					double [] center = t.getCenter();
-					//g.drawString(t.neightbours.length +"", (int)((center[1] - tessel.minLong) * w), (int)((center[0] - tessel.minLat) * h));
-					//g.drawString(""+Vertex.formatter.format(d[gn.id]), (int)((center[1] - tessel.minLong) * w), (int)((center[0] - tessel.minLat) * h));
-				}
-				drawPath(g, Color.red, path1, w, h);
-				drawPath(g, Color.black, path2, w, h);
-				drawPath(g, Color.green, path3, w, h);
-			}
-
-			private void drawPath(Graphics g, Color color, List<GraphNode> path1, double w, double h) {
-				((Graphics2D)g).setStroke(new BasicStroke(4f));
-				g.setColor(color);
-				for (int i = 0; i < path1.size() - 1; i++) {
-					double [] center1 = path1.get(i).getCenter();
-					double [] center2 = path1.get(i+1).getCenter();
-					g.drawLine((int)((center1[1] - tessel.minLong) * w), (int)((center1[0] - tessel.minLat) * h),
-							(int)((center2[1] - tessel.minLong) * w), (int)((center2[0] - tessel.minLat) * h));
-					
-				}				
-			}
-
-			private void drawLine(Graphics g, int x1, int y1, int x2, int y2) {
-				if ((x1 < w && x2 > w) || (x1 > w && x2 < w )) {
-					return;
-				}
-				
-				g.drawLine(x1,y1,x2,y2);
-				
-			};
-		};
+//		JPanel panel = new JPanel() {
+//			private static final long serialVersionUID = 1L;
+//			int w;
+//
+//			protected void paintComponent(java.awt.Graphics g) {
+//				this.w = getWidth()/2;
+//				g.setColor(Color.white);
+//				g.fillRect(0, 0, getWidth(), getHeight());
+////				g.drawImage(image, 0, 0, getWidth(), getHeight(), 0, 0, image.getWidth(), image.getHeight(), null);
+////				double w = getWidth()/360.0;
+////				double h = getHeight()/180.0;
+//				double w = getWidth()/(tessel.maxLong - tessel.minLong);
+//				double h = getHeight()/(tessel.maxLat - tessel.minLat);
+//				g.drawImage(image, 0, 0, getWidth(), getHeight(), 
+//						(int)(image.getWidth() * (180+tessel.minLong) / 360.0), 
+//						(int)(image.getHeight() * (90+tessel.minLat) / 180.0), 
+//						(int)(image.getWidth() * (180+tessel.maxLong) / 360.0),
+//						(int)(image.getHeight() * (90+tessel.maxLat) / 180.0), null);
+//				
+//				
+//				g.setColor(Color.red);
+//				g.drawRect((int)((tessel.minLong + 180) * w), (int)((tessel.minLat + 90) * h), (int)((tessel.maxLong -tessel.minLong) * w), (int)((tessel.maxLat - tessel.minLat) * h));
+//				g.setColor(Color.blue);
+//				for (GraphNode gn : tessel.nodes) {
+//					Triangle t = (Triangle) gn;
+////					drawLine(g, (int)((t.v1.long1 + 180) * w), (int)((t.v1.lat1 + 90) * h), (int)((t.v2.long1 + 180) * w), (int)((t.v2.lat1 + 90) * h));
+////					drawLine(g, (int)((t.v1.long1 + 180) * w), (int)((t.v1.lat1 + 90) * h), (int)((t.v3.long1 + 180) * w), (int)((t.v3.lat1 + 90) * h));
+////					drawLine(g, (int)((t.v2.long1 + 180) * w), (int)((t.v2.lat1 + 90) * h), (int)((t.v3.long1 + 180) * w), (int)((t.v3.lat1 + 90) * h));
+//					drawLine(g, (int)((t.v1.long1 - tessel.minLong) * w), (int)((t.v1.lat1 - tessel.minLat) * h), (int)((t.v2.long1 - tessel.minLong) * w), (int)((t.v2.lat1 - tessel.minLat) * h));
+//					drawLine(g, (int)((t.v1.long1 - tessel.minLong) * w), (int)((t.v1.lat1 - tessel.minLat) * h), (int)((t.v3.long1 - tessel.minLong) * w), (int)((t.v3.lat1 - tessel.minLat) * h));
+//					drawLine(g, (int)((t.v2.long1 - tessel.minLong) * w), (int)((t.v2.lat1 - tessel.minLat) * h), (int)((t.v3.long1 - tessel.minLong) * w), (int)((t.v3.lat1 - tessel.minLat) * h));
+//					double [] center = t.getCenter();
+//					//g.drawString(t.neightbours.length +"", (int)((center[1] - tessel.minLong) * w), (int)((center[0] - tessel.minLat) * h));
+//					//g.drawString(""+Vertex.formatter.format(d[gn.id]), (int)((center[1] - tessel.minLong) * w), (int)((center[0] - tessel.minLat) * h));
+//				}
+//				drawPath(g, Color.red, path1, w, h);
+//				drawPath(g, Color.black, path2, w, h);
+//				drawPath(g, Color.green, path3, w, h);
+//			}
+//
+//			private void drawPath(Graphics g, Color color, List<GraphNode> path1, double w, double h) {
+//				((Graphics2D)g).setStroke(new BasicStroke(4f));
+//				g.setColor(color);
+//				for (int i = 0; i < path1.size() - 1; i++) {
+//					double [] center1 = path1.get(i).getCenter();
+//					double [] center2 = path1.get(i+1).getCenter();
+//					g.drawLine((int)((center1[1] - tessel.minLong) * w), (int)((center1[0] - tessel.minLat) * h),
+//							(int)((center2[1] - tessel.minLong) * w), (int)((center2[0] - tessel.minLat) * h));
+//					
+//				}				
+//			}
+//
+//			private void drawLine(Graphics g, int x1, int y1, int x2, int y2) {
+//				if ((x1 < w && x2 > w) || (x1 > w && x2 < w )) {
+//					return;
+//				}
+//				
+//				g.drawLine(x1,y1,x2,y2);
+//				
+//			};
+//		};
+		List<GraphNode> path = new ArrayList<GraphNode>();
+		path.add(tessel.nodes.get(0));
+		
+		JPanel panel = new SimpleGraphPanel(image, tessel, model, path, null, null);
 		frame.add(panel);
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frame.setSize(1024,768);
