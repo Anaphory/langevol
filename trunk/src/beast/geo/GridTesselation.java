@@ -128,9 +128,14 @@ public class GridTesselation extends SphereTesselation {
 				double [] c = t.getCenter();
 				int x =(int)( w * (c[1]+180) / 360.0);
 				int y =(int)( h * (c[0]+90) / 180.0);
-				int color = image.getRGB(x, y) & 0xFFFFFF;
-				if (color == 0x00FF00) {
-					t.scaleDistance(redDistance);
+				if (x >=0 && x < w && y > 0 && y < h) {
+					int color = image.getRGB(x, y) & 0xFFFFFF;
+					if (color == 0x00FF00) {
+						t.type = 1;
+						t.scaleDistance(redDistance);
+					}
+				} else {
+					System.err.println("out of bounds: " + x + ", " + y);
 				}
 			}
 
@@ -138,6 +143,8 @@ public class GridTesselation extends SphereTesselation {
 			
 			// log some stats
 			System.err.println("#nodes= " + nodes.size());
+			if (true) 
+				return;
 			
 			
 			

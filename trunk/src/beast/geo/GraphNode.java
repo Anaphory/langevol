@@ -96,6 +96,14 @@ abstract public class GraphNode {
 			distance[i] *= scale;
 		}
 	}
+
+	public void scaleDistance(double scale, int i) {
+		if (i >= distance.length) {
+			int h = 3;
+			h++;
+		}
+		distance[i] *= scale;
+	}
 	
 	public double getDistance(int i) {
 		return distance[i];

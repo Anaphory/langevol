@@ -29,14 +29,16 @@ public class QuadrangleTesselation extends SphereTesselation {
 			new File("/home/remco/data/geo/aboriginal25.bmp"));
 	public Input<Boolean> removeOveWaterInput = new Input<Boolean>("removeWater","remove items over water as defined in map", true);
 	public Input<Double> reddistanceInput = new Input<Double>("reddistance","distance for red coloured items in map", 1.0);
+	public Input<Boolean> useSphericalCorrectionInput = new Input<Boolean>("useSphericalCorrection","use correction to spread out points evenly, instead of using Mercator coordinates", true);
 	
 	public QuadrangleTesselation() {
 		bboxInput.setRule(Validate.REQUIRED);
 	}
-
+	boolean useSphericalCorrection = false;
+	
 	@Override
 	public void initAndValidate() throws Exception {
-		
+		useSphericalCorrection = useSphericalCorrectionInput.get();
 		parseBBox();
 		Quadrangle q = new Quadrangle(minLat, minLong, maxLat, maxLong);
 		double [] center = q.getCenter();
@@ -48,16 +50,28 @@ public class QuadrangleTesselation extends SphereTesselation {
 		
 		// create vertices
 		double long0 = minLong - center[1];
-		double longStep = (maxLong - minLong)/depth;
+		double longStep = (maxLong - minLong)/(depth-1);
 		double lat0 = minLat - center[0];
-		double latStep = (maxLat - minLat)/depth;
+		double latStep = (maxLat - minLat)/(depth-1);
+		if (!useSphericalCorrection) {
+			long0 = minLong;
+			lat0 = minLat;
+		}
+		
 		Vertex [][] vertex = new Vertex[depth][depth];
 		for (int i = 0; i < depth; i++) {
 			double lat1 = lat0 + latStep * i;
 			for (int j = 0; j < depth; j++) {
 				double long1 = long0 + longStep * j;
-				double [] point = SphericalDiffusionModel.reverseMap(lat1, long1, center[0], center[1]);
-				vertex[i][j] = new Vertex(point[0], point[1]);
+				if (long1 >= 180) {
+					long1 -= 360;
+				}
+				if (useSphericalCorrection) {
+					double [] point = SphericalDiffusionModel.reverseMap(lat1, long1, center[0], center[1]);
+					vertex[i][j] = new Vertex(point[0], point[1]);
+				} else {
+					vertex[i][j] = new Vertex(lat1, long1);					
+				}
 			}
 		}
 		
@@ -166,10 +180,24 @@ public class QuadrangleTesselation extends SphereTesselation {
 			double [] c = t.getCenter();
 			int x =(int)( w * (c[1]+180) / 360.0);
 			int y =(int)( h * (c[0]+90) / 180.0);
-			int color = image.getRGB(x, y) & 0xFFFFFF;
-			if (color == 0x00FF00) {
-				t.type = 1;
-				t.scaleDistance(redDistance);
+			if (x >=0 && x < w && y > 0 && y < h) {
+				int color = image.getRGB(x, y) & 0xFFFFFF;
+				if (color == 0x00FF00) {
+					t.type = 1;
+					t.scaleDistance(redDistance);
+				}
+			} else {
+				System.err.println("out of bounds: " + x + ", " + y);
+			}
+		}
+		for (GraphNode t : nodes) {
+			if (t.type != 1) {
+				for (int i = 0; i < t.neighbours.length; i++) {
+					GraphNode nb = t.neighbours[i];
+					if (nb.type == 1) {
+						t.scaleDistance(redDistance, i);
+					}
+				}
 			}
 		}
 
