@@ -33,7 +33,7 @@ public class Graph extends BEASTObject {
 	LatLongMap latLongMap;
 	
 	@Override
-	public void initAndValidate() throws Exception {
+	public void initAndValidate() {
 	}
 	
 	/** used to quickly find a GraphNode closest to a given latitude/longitude pair 

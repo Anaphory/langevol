@@ -38,7 +38,7 @@ public class MoveAboutMeanOperator extends Operator {
 	double windowSize;
 	
     @Override
-	public void initAndValidate() throws Exception {
+	public void initAndValidate() {
     	tree = treeInput.get();
     	clockModel = branchRateModelInput.get();
     	operator = operatorInput.get();

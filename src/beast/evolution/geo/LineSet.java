@@ -21,7 +21,7 @@ public class LineSet extends BEASTObject {
 	double [][] longitudes;
 	
 	@Override
-	public void initAndValidate() throws Exception {
+	public void initAndValidate() {
 		w = wInput.get();
 		h = hInput.get();
 		

@@ -43,7 +43,7 @@ public class ConstrainedSphericalDiffusionModel extends ContinuousSubstitutionMo
 	
 	
     @Override
-    public void initAndValidate() throws Exception {
+    public void initAndValidate() {
     	precision = precisionInput.get();
     	latitudes = tabuLineInput.get().getLatitudes();
     	longitudes = tabuLineInput.get().getLongitudes();

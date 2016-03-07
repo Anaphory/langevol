@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -12,9 +13,11 @@ import java.util.Random;
 
 import javax.imageio.ImageIO;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import beast.core.Description;
 import beast.core.Distribution;
@@ -49,7 +52,7 @@ public class UniformGeoFrequencies extends Frequencies {
 		
 	}
 	@Override
-	public void initAndValidate() throws Exception {
+	public void initAndValidate() {
 		graph = graphInput.get();
 
 		if (kmlFileInput.get()==null) {
@@ -57,8 +60,31 @@ public class UniformGeoFrequencies extends Frequencies {
 			isAdmissable = new boolean[graph.getSize()];
 			Arrays.fill(isAdmissable, true);
 		} else {
-			List<List<Double>> coordinates = parseKML();
-			calcAdmissableNodes(coordinates);
+			
+				List<List<Double>> coordinates;
+				try {
+					coordinates = parseKML();
+				} catch (SAXException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					throw new RuntimeException(e.getMessage());
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					throw new RuntimeException(e.getMessage());
+				} catch (ParserConfigurationException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					throw new RuntimeException(e.getMessage());
+				}
+				try {
+					calcAdmissableNodes(coordinates);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					throw new RuntimeException(e.getMessage());
+				}
+		
 		}
 		calcFreqs();
 	}
@@ -82,7 +108,7 @@ public class UniformGeoFrequencies extends Frequencies {
 		
 		
 	}
-	private void calcAdmissableNodes(List<List<Double>> coordinates) throws Exception {
+	private void calcAdmissableNodes(List<List<Double>> coordinates) throws IOException {
 		boolean debug = true;//Boolean.valueOf(System.getProperty("beast.debug"));
 		
 		isAdmissable = new boolean[graph.getSize()];
@@ -168,7 +194,7 @@ public class UniformGeoFrequencies extends Frequencies {
 	}
 
 
-	private List<List<Double>> parseKML() throws Exception {
+	private List<List<Double>> parseKML() throws SAXException, IOException, ParserConfigurationException {
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		factory.setValidating(false);
 		org.w3c.dom.Document doc = factory.newDocumentBuilder().parse(kmlFileInput.get());

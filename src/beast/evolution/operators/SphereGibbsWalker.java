@@ -35,7 +35,7 @@ public class SphereGibbsWalker extends MoveAboutMeanOperator {
 
     
     @Override
-	public void initAndValidate() throws Exception {
+	public void initAndValidate() {
     	minLat = minLatInput.get();
     	maxLat = maxLatInput.get();
     	latStep = latStepInput.get();

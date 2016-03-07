@@ -30,7 +30,7 @@ public class ApproxMultivariateTraitLikelihood extends GenericTreeLikelihood {
 	boolean scaleByBranchLength;
 	
 	@Override
-	public void initAndValidate() throws Exception {
+	public void initAndValidate() {
 		super.initAndValidate();
 		clockModel = branchRateModelInput.get();
 		SiteModel siteModel = (SiteModel) siteModelInput.get();
@@ -66,7 +66,7 @@ public class ApproxMultivariateTraitLikelihood extends GenericTreeLikelihood {
 
 	
 	@Override
-	public double calculateLogP() throws Exception {
+	public double calculateLogP() {
 		logP = 0.0;
 		calcBranchLengths();
 		caclPositions();

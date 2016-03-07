@@ -31,7 +31,7 @@ public class MixtureModelTreeLikelihood extends Distribution {
 	List<TreeLikelihood> likelihoods;
 	
 	@Override
-	public void initAndValidate() throws Exception {
+	public void initAndValidate() {
 		likelihoods = likelihoodInput.get();
 		int nrOfSites = likelihoods.get(0).dataInput.get().getSiteCount();
 		
@@ -53,7 +53,7 @@ public class MixtureModelTreeLikelihood extends Distribution {
 	
 	
 	@Override
-	public double calculateLogP() throws Exception {
+	public double calculateLogP() {
 		
 		
 		double [][] patternLogLikelihoods = new double[indicator.getUpper()+1][];

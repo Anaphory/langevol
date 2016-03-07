@@ -53,7 +53,7 @@ public class SingleTipObservationProcess extends AnyTipObservationProcess{
 
     //dr.evomodel.MSSD.AnyTipObservationProcess singletipobservationprocess;
 
-    public void initAndValidate() throws Exception {
+    public void initAndValidate() {
         init(treeModelInput.get(),
                 patternsInput.get(),
                 siteModelInput.get(),

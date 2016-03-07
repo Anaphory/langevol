@@ -17,7 +17,7 @@ public class DistanceDiffusionModel extends ContinuousSubstitutionModel {
 	RealParameter precision;
 	
 	@Override
-	public void initAndValidate() throws Exception {
+	public void initAndValidate() {
 		graph = graphInput.get();
 		precision = precisionInput.get();
 		super.initAndValidate();

@@ -22,7 +22,7 @@ public class MutationDeathType extends DataType.Base {
 
     
     @Override
-    public void initAndValidate() throws Exception {
+    public void initAndValidate() {
     	char deathCode = deathCharInput.get().charAt(0);
     	if (extantCodeInput.get() != null) {
     		char extantCode = extantCodeInput.get().charAt(0);

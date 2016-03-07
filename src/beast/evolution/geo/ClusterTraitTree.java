@@ -11,7 +11,7 @@ public class ClusterTraitTree extends ClusterTree {
 	public Input<RealParameter> locationInput = new Input<RealParameter>("trait", "location trait where last two elements represent latitude, longitude", Validate.REQUIRED);
 
 	@Override
-	public void initAndValidate() throws Exception {
+	public void initAndValidate() {
 		super.initAndValidate();
 		
 		RealParameter parameter = locationInput.get();

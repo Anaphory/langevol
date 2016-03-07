@@ -41,7 +41,7 @@ public class ALSTreeLikelihood extends TreeLikelihood implements PartialsProvide
     protected AbstractObservationProcess observationProcess;
 
     @Override
-    public void initAndValidate() throws Exception {
+    public void initAndValidate() {
         observationProcess = opInput.get();
         // ensure TreeLikelihood initialises the partials for tips
         m_useAmbiguities.setValue(true, this);
@@ -49,7 +49,7 @@ public class ALSTreeLikelihood extends TreeLikelihood implements PartialsProvide
     }
 
     @Override
-    public double calculateLogP() throws Exception {
+    public double calculateLogP() {
         // Calculate the partial likelihoods
         super.calculateLogP();
         // get the frequency model

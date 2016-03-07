@@ -22,7 +22,7 @@ public class DeltaExchangeScaler extends Operator {
     double delta = 1;
     
     @Override
-	public void initAndValidate() throws Exception {
+	public void initAndValidate() {
     	realparameter = upInput.get();
     	scaleNode = downInput.get();
     	delta = deltaInput.get();

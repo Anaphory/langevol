@@ -27,7 +27,7 @@ public class GeoDistribution extends Distribution {
 	
 	
 	@Override
-	public void initAndValidate() throws Exception {
+	public void initAndValidate() {
 		location = locationInput.get();
 
 		onroot = onrootInput.get();
@@ -51,7 +51,7 @@ public class GeoDistribution extends Distribution {
 	
 	
 	@Override
-	public double calculateLogP() throws Exception {
+	public double calculateLogP() {
 		int i = location.getValue(taxonNr);
 		logP = Math.log(frequencies.getFreqs()[i]);
 		return logP;

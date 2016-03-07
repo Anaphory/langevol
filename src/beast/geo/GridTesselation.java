@@ -43,7 +43,7 @@ public class GridTesselation extends SphereTesselation {
 		}
 	
 		@Override
-		public void initAndValidate() throws Exception {
+		public void initAndValidate() {
 			
 			parseBBox();
 			Quadrangle q = new Quadrangle(minLat, minLong, maxLat, maxLong);

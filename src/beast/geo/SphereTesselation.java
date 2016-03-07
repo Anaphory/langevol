@@ -34,7 +34,7 @@ public class SphereTesselation extends Graph {
 	public double maxLong= 180, minLong= -180;
 	
 	@Override
-	public void initAndValidate() throws Exception {
+	public void initAndValidate() {
 		nodes = new ArrayList<GraphNode>();
 		double phi = Math.atan(0.5) * 180 / Math.PI;
 		

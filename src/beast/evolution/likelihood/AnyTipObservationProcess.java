@@ -51,7 +51,7 @@ public class AnyTipObservationProcess extends AbstractObservationProcess {
 
 
     @Override
-    public void initAndValidate() throws Exception {
+    public void initAndValidate() {
         init(
                 "AnyTip",
                 treeModelInput.get(),

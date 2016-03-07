@@ -12,12 +12,12 @@ public class RootLocationLogger extends BEASTObject implements Loggable {
 
 	ApproxMultivariateTraitLikelihood likelihood;
 	@Override
-	public void initAndValidate() throws Exception {
+	public void initAndValidate() {
 		likelihood = likelihoodInput.get();
 	}
 
 	@Override
-	public void init(PrintStream out) throws Exception {
+	public void init(PrintStream out) {
 		String name = getID();
 		if (name == null) {
 			name = "root";

@@ -37,7 +37,7 @@ public class QuadrangleTesselation extends SphereTesselation {
 	boolean useSphericalCorrection = false;
 	
 	@Override
-	public void initAndValidate() throws Exception {
+	public void initAndValidate() {
 		useSphericalCorrection = useSphericalCorrectionInput.get();
 		parseBBox();
 		Quadrangle q = new Quadrangle(minLat, minLong, maxLat, maxLong);

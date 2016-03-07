@@ -28,7 +28,7 @@ public class SimpleDeathModel extends SubstitutionModel.Base {
     protected EigenDecomposition eigenDecomposition;
 
     @Override
-    public void initAndValidate() throws Exception {
+    public void initAndValidate() {
         super.initAndValidate();
         double[] freqs = getFrequencies();
         nrOfStates = freqs.length;

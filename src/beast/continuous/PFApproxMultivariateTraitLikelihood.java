@@ -141,7 +141,7 @@ public class PFApproxMultivariateTraitLikelihood extends GenericTreeLikelihood {
 	double [][][] particlePosition;
 	
 	@Override
-	public void initAndValidate() throws Exception {
+	public void initAndValidate() {
 		super.initAndValidate();
 		scaleByBranchLength = scaleByBranchLengthInput.get();
 		clockModel = branchRateModelInput.get();
@@ -197,7 +197,7 @@ public class PFApproxMultivariateTraitLikelihood extends GenericTreeLikelihood {
     }
 
 	@Override
-	public double calculateLogP() throws Exception {
+	public double calculateLogP() {
 		logP = 0.0;
 		calcBranchLengths();
 		setUpInitialPositions();

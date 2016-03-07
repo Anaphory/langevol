@@ -13,7 +13,7 @@ public class Line extends BEASTObject {
 	public Input<Double> hInput = new Input<Double>("h", "height of the line, y2 = y + w", Validate.REQUIRED);
 
 	@Override
-	public void initAndValidate() throws Exception {
+	public void initAndValidate() {
 	}
 
 }

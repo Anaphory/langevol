@@ -61,7 +61,7 @@ public class AbstractObservationProcess extends CalculationNode {
 
 
 	@Override
-	public void initAndValidate() throws Exception {
+	public void initAndValidate() {
 		// TODO Auto-generated method stub
 		
 	}

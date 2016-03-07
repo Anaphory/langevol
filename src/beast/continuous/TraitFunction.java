@@ -19,7 +19,7 @@ public class TraitFunction extends RealParameter {
 	Tree tree;
 	
 	@Override
-	public void initAndValidate() throws Exception {
+	public void initAndValidate() {
 		if (likelihoodInput.get() instanceof ApproxMultivariateTraitLikelihood) {
 			likelihood = (ApproxMultivariateTraitLikelihood)likelihoodInput.get();
 			tree = ((Tree) (likelihood.treeInput.get()));

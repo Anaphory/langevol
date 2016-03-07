@@ -18,12 +18,12 @@ public class RootLocationPrior extends Distribution {
 	RealParameter location;
 	
 	@Override
-	public void initAndValidate() throws Exception {
+	public void initAndValidate() {
 		location = locationInput.get();
 	}
 	
 	@Override
-	public double calculateLogP() throws Exception {
+	public double calculateLogP() {
 		logP = 0;
 		int i = location.getDimension() - 2;
 		double latitude = location.getArrayValue(i);

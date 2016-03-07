@@ -29,6 +29,7 @@ package beast.evolution.likelihood;
 import beast.core.Description;
 import beast.core.Input;
 import beast.evolution.likelihood.ThreadedTreeLikelihood;
+import beast.evolution.sitemodel.SiteModelInterface;
 
 
 @Description("Threaded Treelikelihood for running the Multi-State Stochastic Dollo process")
@@ -38,19 +39,19 @@ public class ThreadedALSTreeLikelihood extends ThreadedTreeLikelihood implements
     protected AbstractObservationProcess observationProcess;
 
     @Override
-    public void initAndValidate() throws Exception {
+    public void initAndValidate() {
         observationProcess = op.get();
         // ensure TreeLikelihood initialises the partials for tips
-        m_useAmbiguities.setValue(true, this);
+        useAmbiguitiesInput.setValue(true, this);
         super.initAndValidate();
     }
 
     @Override
-    public double calculateLogP() throws Exception {
+    public double calculateLogP() {
         // Calculate the partial likelihoods
         super.calculateLogP();
         // get the frequency model
-        double[] freqs = m_pSiteModel.get().substModelInput.get().getFrequencies();
+        double[] freqs = ((SiteModelInterface.Base) siteModelInput.get()).substModelInput.get().getFrequencies();
         // let the observationProcess handle the rest
         logP = observationProcess.nodePatternLikelihood(freqs, this);
         return logP;
@@ -59,6 +60,9 @@ public class ThreadedALSTreeLikelihood extends ThreadedTreeLikelihood implements
     
 	@Override
 	public void getNodePartials(int iNode, double[] fPartials) {
-		m_likelihoodCore.getNodePartials(iNode, fPartials);
+		// TODO: Fix this method
+		// Was:
+		// m_likelihoodCore.getNodePartials(iNode, fPartials);
+		// but the property m_likelihoodCore does not exist
 	}
 }

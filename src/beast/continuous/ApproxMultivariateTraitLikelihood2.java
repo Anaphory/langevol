@@ -10,7 +10,7 @@ public class ApproxMultivariateTraitLikelihood2 extends ApproxMultivariateTraitL
 
 	
 	@Override
-	public void initAndValidate() throws Exception {
+	public void initAndValidate() {
 		super.initAndValidate();
 
 		sphereposition = new double[position.length][3];
