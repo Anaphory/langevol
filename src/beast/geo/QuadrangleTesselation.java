@@ -7,6 +7,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -90,7 +91,14 @@ public class QuadrangleTesselation extends SphereTesselation {
 
 		// filter nodes that are in the sea only
 		List<GraphNode> filteredTriangles = new ArrayList<>();
-		final BufferedImage image = ImageIO.read(mapFileInput.get());
+		BufferedImage image;
+		try {
+			image = ImageIO.read(mapFileInput.get());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			throw new RuntimeException(e.getMessage());
+		}
 		int w = image.getWidth();
 		int h = image.getHeight();
 		if (removeOveWaterInput.get()) {

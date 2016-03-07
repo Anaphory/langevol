@@ -2,6 +2,7 @@ package beast.geo;
 
 import java.util.Arrays;
 
+import beast.continuous.DiscretePFApproxMultivariateTraitLikelihood;
 import beast.core.Input;
 import beast.core.Input.Validate;
 import beast.core.Operator;
@@ -75,7 +76,8 @@ public class LocationAllGibbsOperator extends Operator {
 			likelihood.calculateLogP();
 			int nrOfLeafs = tree.getLeafNodeCount();
 			for (int i = nrOfLeafs; i < nrOfLeafs*2-1; i++) {
-				location.setValue(i, likelihood.getPostion(i));
+				// TODO: Figure out how to fix this method call
+				// Filocation.setValue(i, likelihood.getPostion(i));
 			}
 			return Double.POSITIVE_INFINITY;
 		} catch (Exception e) {
