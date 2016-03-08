@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import beast.continuous.SphericalDiffusionModel;
+import sphericalGeo.SphericalDiffusionModel;
 
 
 /** latitudes in -90,90 longitudes in -180,180 **/
@@ -30,7 +30,7 @@ public class Triangle extends GraphNode {
 			mean[i] = (v1.cart[i] + v2.cart[i] + v3.cart[i]) / 3.0;
 		}
 		normalise(mean);
-		double [] center = SphericalDiffusionModel.cartesian2Sperical(mean);
+		double [] center = SphericalDiffusionModel.cartesian2Sperical(mean, true);
 		return center;
 	}
 	

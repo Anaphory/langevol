@@ -2,6 +2,7 @@ package beast.continuous;
 
 
 import beast.core.Description;
+import sphericalGeo.SphericalDiffusionModel;
 
 @Description("Approximate likelihood by MAP approximation of internal states")
 public class ApproxMultivariateTraitLikelihood2 extends ApproxMultivariateTraitLikelihood {
@@ -61,7 +62,7 @@ public class ApproxMultivariateTraitLikelihood2 extends ApproxMultivariateTraitL
 		}
 		
 		for (int i = tree.getLeafNodeCount(); i < tree.getNodeCount(); i++) {
-			position[i] = SphericalDiffusionModel.cartesian2Sperical(sphereposition[i]);
+			position[i] = SphericalDiffusionModel.cartesian2Sperical(sphereposition[i], true);
 		}
 
 //		System.err.println("maxdelta2 = " + max);

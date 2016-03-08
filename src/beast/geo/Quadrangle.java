@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import beast.continuous.SphericalDiffusionModel;
+import sphericalGeo.SphericalDiffusionModel;
 
 public class Quadrangle extends GraphNode {
 	
@@ -41,7 +41,7 @@ public class Quadrangle extends GraphNode {
 			mean[i] = (v1.cart[i] + v2.cart[i] + v3.cart[i] + v4.cart[i]) / 4.0;
 		}
 		normalise(mean);
-		double [] center = SphericalDiffusionModel.cartesian2Sperical(mean);
+		double [] center = SphericalDiffusionModel.cartesian2Sperical(mean, true);
 		return center;
 	}
 

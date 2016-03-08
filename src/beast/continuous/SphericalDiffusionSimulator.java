@@ -25,6 +25,7 @@ import beast.evolution.sitemodel.SiteModel;
 import beast.evolution.sitemodel.SiteModelInterface;
 import beast.evolution.tree.Node;
 import beast.evolution.tree.TreeInterface;
+import sphericalGeo.SphericalDiffusionModel;
 
 @Description("Simulates spherical diffusion process on a tree")
 public class SphericalDiffusionSimulator extends beast.core.Runnable {
@@ -59,7 +60,7 @@ public class SphericalDiffusionSimulator extends beast.core.Runnable {
 		tree = treeInput.get();
 		
 		position = new double[tree.getNodeCount()][2];
-		precision = substModel.precision.getValue();
+		precision = substModel.precisionInput.get().getValue();
 		forceAngle = forceAngleInput.get();
 	}
 

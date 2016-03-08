@@ -6,7 +6,7 @@ import java.text.NumberFormat;
 import java.util.HashSet;
 import java.util.Set;
 
-import beast.continuous.SphericalDiffusionModel;
+import sphericalGeo.SphericalDiffusionModel;
 
 public class Vertex {
 	static NumberFormat formatter = new DecimalFormat("#0.00"); 

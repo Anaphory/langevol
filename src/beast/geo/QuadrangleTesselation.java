@@ -16,12 +16,12 @@ import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-import beast.continuous.SphericalDiffusionModel;
 import beast.core.Description;
 import beast.core.Input;
 import beast.core.Input.Validate;
 import beast.evolution.alignment.distance.GreatCircleDistance;
 import beast.util.Randomizer;
+import sphericalGeo.SphericalDiffusionModel;
 
 @Description("Tesselates (part of) a sphere with equal sized quadrangle")
 public class QuadrangleTesselation extends SphereTesselation {

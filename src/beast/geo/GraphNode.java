@@ -5,8 +5,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import beast.continuous.SphericalDiffusionModel;
 import beast.evolution.alignment.distance.GreatCircleDistance;
+import sphericalGeo.SphericalDiffusionModel;
 
 abstract public class GraphNode {
 	public int id;
@@ -43,7 +43,7 @@ abstract public class GraphNode {
 			mean[i] = (c1.cart[i] + c2.cart[i]) / 2.0;
 		}
 		normalise(mean);
-		double [] center = SphericalDiffusionModel.cartesian2Sperical(mean);
+		double [] center = SphericalDiffusionModel.cartesian2Sperical(mean, true);
 		return new Vertex(center[0], center[1]);
 	}
 
@@ -54,7 +54,7 @@ abstract public class GraphNode {
 			mean[i] = (c1.cart[i] + c2.cart[i] + c3.cart[i] + c4.cart[i]) / 4.0;
 		}
 		normalise(mean);
-		double [] center = SphericalDiffusionModel.cartesian2Sperical(mean);
+		double [] center = SphericalDiffusionModel.cartesian2Sperical(mean, true);
 		return new Vertex(center[0], center[1]);
 	}
 

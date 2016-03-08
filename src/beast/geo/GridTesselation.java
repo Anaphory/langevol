@@ -17,7 +17,6 @@ import org.apache.commons.math3.linear.SingularValueDecomposition;
 import org.apache.commons.math3.util.FastMath;
 import org.apache.commons.math3.util.Precision;
 
-import beast.continuous.SphericalDiffusionModel;
 import beast.core.Description;
 import beast.core.Input;
 import beast.core.Input.Validate;
@@ -25,6 +24,7 @@ import beast.evolution.substitutionmodel.DefaultEigenSystem;
 import beast.evolution.substitutionmodel.EigenDecomposition;
 import beast.evolution.substitutionmodel.EigenSystem;
 import beast.util.Randomizer;
+import sphericalGeo.SphericalDiffusionModel;
 
 @Description("Tesselates (part of) a sphere with equal sized quadrangle on a grid")
 public class GridTesselation extends SphereTesselation {
