@@ -2,7 +2,8 @@ package beast.geo;
 
 import java.io.Serializable;
 
-import com.sun.org.glassfish.gmbal.Description;
+import beast.core.Description;
+
 
 @Description("serialisable wrapper around a distance matrix")
 public class DistanceMatrix implements Serializable {

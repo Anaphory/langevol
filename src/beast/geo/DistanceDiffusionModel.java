@@ -1,7 +1,6 @@
 package beast.geo;
 
-import com.sun.org.glassfish.gmbal.Description;
-
+import beast.core.Description;
 import beast.core.Input;
 import beast.core.Input.Validate;
 import beast.core.parameter.RealParameter;

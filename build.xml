@@ -40,7 +40,7 @@
 		<xmlproperty file="version.xml" prefix="fromVersionFile" />
 		<property name="projName" value="${fromVersionFile.addon(name)}" />
 		<property name="projVersion" value="${fromVersionFile.addon(version)}" />
-
+		<property name="dependsJars" location="../beast-geo/build/dist/Geo.jar" />
 		<mkdir dir="${build}" />
 		<mkdir dir="${build-lib}" />
 		<mkdir dir="${dist}" />
@@ -76,11 +76,13 @@
 
 		<delete dir="${build-beast}" />
 	</target>
-
+	
 	<!-- Compile -->
 	<target name="compile" depends="init, get-beast">
 		<javac target="${targetVersion}" source="${sourceVersion}" srcdir="${src}" destdir="${build}" includeantruntime="false">
 			<classpath>
+				<pathelement location="../beast-classic/build/dist/BEAST_CLASSIC.addon.jar"/>
+				<pathelement location="../beast-geo/build/dist/GEO.addon.jar"/>
 				<pathelement path="${classpath}" />
 				<fileset dir="${build-lib}" includes="*.jar" />
 			</classpath>
