@@ -147,7 +147,7 @@
                 <data idref="data"/>
 			</alignment>
 
-			<distribution spec='beast.evolution.MSSD.ALSTreeLikelihood' id="treeLikelihood.$(n)" tree='@Tree.t:$(n)' useAmbiguities="true">
+			<distribution spec='beast.evolution.likelihood.ALSTreeLikelihood' id="treeLikelihood.$(n)" tree='@Tree.t:$(n)' useAmbiguities="true">
                 <data idref="orgdata.$(n)"/>
 				<observationprocess spec='beast.evolution.MSSD.AnyTipObservationProcess' tree='@Tree.t:$(n)' siteModel='@SiteModel.s:$(n)' integrateGainRate="true"	mu='@deathRate.s:$(n)'>
 	                <data idref="orgdata.$(n)"/>
