@@ -23,8 +23,14 @@ public class MutationDeathType extends DataType.Base {
     
     @Override
     public void initAndValidate() {
+    	if (deathCharInput.get().length()>1) {
+    		throw new IllegalArgumentException("deathChar must be a single character");
+    	}
     	char deathCode = deathCharInput.get().charAt(0);
     	if (extantCodeInput.get() != null) {
+        	if (extantCodeInput.get().length()>1) {
+        		throw new IllegalArgumentException("extantCode must be a single character");
+        	}
     		char extantCode = extantCodeInput.get().charAt(0);
     		
     		int [][] x = {
