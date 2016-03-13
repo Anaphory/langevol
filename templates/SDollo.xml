@@ -144,52 +144,52 @@
 <![CDATA[
 			<alignment spec='beast.evolution.alignment.FilteredAlignment' filter='-' id='orgdata.$(n)'>
 				<userDataType spec='beast.evolution.datatype.MutationDeathType' deathChar='0' extantCode='1'/>
-                <data idref="data"/>
+                <data idref="$(n)"/>
 			</alignment>
 
 			<distribution spec='beast.evolution.likelihood.ALSTreeLikelihood' id="treeLikelihood.$(n)" tree='@Tree.t:$(n)' useAmbiguities="true">
                 <data idref="orgdata.$(n)"/>
-				<observationprocess spec='beast.evolution.MSSD.AnyTipObservationProcess' tree='@Tree.t:$(n)' siteModel='@SiteModel.s:$(n)' integrateGainRate="true"	mu='@deathRate.s:$(n)'>
+				<observationprocess spec='beast.evolution.likelihood.AnyTipObservationProcess' tree='@Tree.t:$(n)' siteModel='@SiteModel.s:$(n)' integrateGainRate="true"	mu='@deathRate.s:$(n)'>
 	                <data idref="orgdata.$(n)"/>
 				</observationprocess>
 				<siteModel spec='SiteModel' id="SiteModel.s:$(n)" gammaCategoryCount="1">
 		            <proportionInvariant spec='parameter.RealParameter' id='proportionInvariant.s:$(n)' value='0.0' lower='0' upper='1' estimate='false'/>
 		            <mutationRate        spec='parameter.RealParameter' id='mutationRate.s:$(n)' value='1.0'        estimate='false'/>
 		            <shape               spec='parameter.RealParameter' id='gammaShape.s:$(n)' value='1.0'         estimate='false'/>
-					<substModel spec="MutationDeathModel" id="SDollo">
+					<substModel spec="MutationDeathModel" id="SDollo.s:$(n)">
 						<parameter name='deathprob' id='deathRate.s:$(n)' lower="0.0" value="1.0"/>
 						<frequencies id='freqs.s:$(n)' spec='Frequencies'>
 							<frequencies spec='parameter.RealParameter' value='1 0'/>
 						</frequencies>
 					</substModel>
 				</siteModel>
-                <branchRateModel spec='StrictClockModel' id='StrictClock.c:$(n)'>
+                <branchRateModel spec='beast.evolution.branchratemodel.StrictClockModel' id='StrictClock.c:$(n)'>
                     <clock.rate id='clockRate.c:$(n)' spec='parameter.RealParameter' value='1.0' estimate='false'/>
                 </branchRateModel>
             </distribution>
 
 	        <prior id='ClockPrior.c:$(n)' x='@clockRate.c:$(n)'><distr spec="beast.math.distributions.Uniform" upper='Infinity'/></prior>
-	        <prior id='MutationRatePrior.s:$(n)' x='@mutationRate.s:$(n)'><distr spec="OneOnX"/></prior>
+	        <prior id='MutationRatePrior.s:$(n)' x='@mutationRate.s:$(n)'><distr spec="beast.math.distributions.OneOnX"/></prior>
 
             <!-- tree and its properties -->
             <taxonset id='TaxonSet.$(n)' spec='beast.evolution.alignment.TaxonSet' alignment='@$(n)' />
             <plugin spec='beast.evolution.tree.Tree' id='Tree.t:$(n)' taxonset='@TaxonSet.$(n)'>
 	            <!--trait id='datetrait.$(n)' spec='beast.evolution.tree.TraitSet' traitname='date' units='year'
 		            value=''>
-		            <taxa idref='data'/>
+		            <taxa idref='$(n)'/>
 	            </trait-->
             </plugin>
 
             <!--plugin spec='beast.evolution.tree.RandomTree' id='RandomTree.t:$(n)' estimate='false' trait='@datetrait.$(n)' initial='@Tree.t:$(n)'-->
             <plugin spec='beast.evolution.tree.RandomTree' id='RandomTree.t:$(n)' estimate='false' initial='@Tree.t:$(n)'>
-                <taxa spec='Alignment' idref='data'/>
+                <taxa spec='Alignment' idref='$(n)'/>
                 <populationModel id='ConstantPopulation0.t:$(n)' spec='ConstantPopulation'>
             		<popSize id='randomPopSize.t:$(n)' spec='parameter.RealParameter' value='1'/>
 	            </populationModel>
             </plugin>
 
             <!-- default tree prior -->
-            <plugin spec='YuleModel' id="YuleModel.t:$(n)" tree='@Tree.t:$(n)'>
+            <plugin spec='beast.evolution.speciation.YuleModel' id="YuleModel.t:$(n)" tree='@Tree.t:$(n)'>
                 <parameter name='birthDiffRate' id="birthRate.t:$(n)" value='1.0' estimate='true'/>
             </plugin>
 
@@ -216,7 +216,7 @@
 
             <prior id='YuleBirthRatePrior.t:$(n)' x='@birthRate.t:$(n)'><distr spec="beast.math.distributions.Uniform" lower='0' upper='Infinity'/></prior>
             <prior id='GammaShapePrior.s:$(n)' x='@gammaShape.s:$(n)'><distr spec="beast.math.distributions.Exponential" mean='1'/></prior>
-            <prior id='PropInvariantPrior.t:$(n)' x='@proportionInvariant.s:$(n)'><distr spec="beast.math.distributions.Uniform" lower='0' upper='1'/></prior>
+            <prior id='PropInvariantPrior.s:$(n)' x='@proportionInvariant.s:$(n)'><distr spec="beast.math.distributions.Uniform" lower='0' upper='1'/></prior>
   		    <operator id='YuleBirthRateScaler.t:$(n)' spec='ScaleOperator' scaleFactor="0.75" weight="3" parameter="@birthRate.t:$(n)"/>
 			<operator id='StrictClockRateScaler.c:$(n)' spec='ScaleOperator' scaleFactor="0.75" weight="3" parameter='@clockRate.c:$(n)'/>
 			<!-- need updown operator for clockRate?!? Also in SubstModel.xml -->
@@ -286,7 +286,7 @@
         <subtemplate id='RandomTree' class='beast.evolution.tree.RandomTree' mainid='RandomTree.t:$(n)'>
 <![CDATA[
             <tree spec='beast.evolution.tree.RandomTree' id='RandomTree.t:$(n)' estimate='false' trait='@datetrait.$(n)'>
-                <taxa spec='Alignment' idref='data'/>
+                <taxa spec='Alignment' idref='$(n)'/>
                 <populationModel id='ConstantPopulation0.t:$(n)' spec='ConstantPopulation'>
             		<popSize id='randomPopSize.t:$(n)' spec='parameter.RealParameter' value='1'/>
 	            </populationModel>
